@@ -5,7 +5,8 @@ pub struct StreamData {
     pub sender: Identity,
     pub recipient: Identity,
     pub amount: u64,
+    pub claimed_amount: u64,
+    pub claimed_time: u64,
     pub start_time: u64,
-    pub end_time: u64,
-    pub interval: u64,
+    pub end_time: u64
 }

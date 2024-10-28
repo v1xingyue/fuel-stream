@@ -46,6 +46,8 @@ use sway_libs::{
     },
 };
 
+const TAI64_DIFFERENCE = 4611686018427387904;
+
 storage {
     counter: u64 = 123,
     streams: StorageMap<u64, StreamData> = StorageMap {},
@@ -58,7 +60,6 @@ impl Stream for Contract {
         amount: u64,
         start_time: u64,
         end_time: u64,
-        interval: u64,
     ) -> u64 {
         let v: u64 = storage.counter.read();
         let result: u64 = v + 1;
@@ -72,7 +73,8 @@ impl Stream for Contract {
             amount,
             start_time,
             end_time,
-            interval,
+            claimed_amount: 0,
+            claimed_time: start_time,
         };
         storage.streams.insert(v, stream_data);
         storage.incoming_streams.get(recipient).push(v);
@@ -81,18 +83,26 @@ impl Stream for Contract {
 
     #[storage(read, write)]
     fn claim(stream_id: u64) {
-        let stream_data = storage.streams.get(stream_id).read();
+        let mut stream_data = storage.streams.get(stream_id).read();
         let recipient = stream_data.recipient;
         let amount = stream_data.amount;
         let asset_id = stream_data.asset_id;
-        let start_time = stream_data.start_time;
         let end_time = stream_data.end_time;
-        let interval = stream_data.interval;
-        let current_time = timestamp();
-        let time_elapsed = current_time - start_time;
-        let amount_per_interval = amount / (end_time - start_time) * interval;
+
+        let mut current_time: u64 = timestamp() - TAI64_DIFFERENCE;
+        if (current_time > end_time) {
+            current_time = end_time;
+        }
+        let time_elapsed = current_time - stream_data.claimed_time;
+        let amount_per_interval = amount / (end_time - stream_data.claimed_time);
         let amount_to_send = time_elapsed * amount_per_interval;
+
         transfer(recipient, asset_id, amount_to_send);
+
+        stream_data.claimed_amount += amount_to_send;
+        stream_data.claimed_time = current_time;
+        stream_data.amount = amount - amount_to_send;
+        storage.streams.insert(stream_id, stream_data);
     }
     #[storage(read)]
     fn get_stream(stream_id: u64) -> StreamData {
@@ -114,5 +124,26 @@ impl Stream for Contract {
             i += 1;
         }
         result
+    }
+
+    #[storage(read)]
+    fn will_claim(stream_id: u64) -> (u64, u64) {
+        let mut stream_data = storage.streams.get(stream_id).read();
+        let amount = stream_data.amount;
+        let end_time = stream_data.end_time;
+        let claimed_time = stream_data.claimed_time;
+
+        let mut current_time: u64 = timestamp() - TAI64_DIFFERENCE;
+        if (current_time > end_time) {
+            current_time = end_time;
+        }
+        let time_elapsed = current_time - claimed_time;
+        let amount_per_interval = amount / (end_time - claimed_time);
+        let amount_to_send = time_elapsed * amount_per_interval;
+        (amount_to_send, current_time)
+    }
+
+    fn now() -> u64 {
+        timestamp() - TAI64_DIFFERENCE
     }
 }
