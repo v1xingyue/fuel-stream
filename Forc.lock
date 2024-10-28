@@ -1,0 +1,30 @@
+[[package]]
+name = "core"
+source = "path+from-root-7053AAA90CC5E690"
+
+[[package]]
+name = "fuel_stream"
+source = "member"
+dependencies = [
+    "standards",
+    "std",
+    "sway_libs",
+]
+
+[[package]]
+name = "standards"
+source = "git+https://github.com/FuelLabs/sway-standards?tag=v0.4.3#6f63eb7dff2458a7d976184e565b5cbf26f61da2"
+dependencies = ["std"]
+
+[[package]]
+name = "std"
+source = "git+https://github.com/fuellabs/sway?tag=v0.66.2#31486c0b47669612acb7c64d66ecb50aea281282"
+dependencies = ["core"]
+
+[[package]]
+name = "sway_libs"
+source = "git+https://github.com/FuelLabs/sway-libs?tag=v0.21.0#6a227ed34c86fe1ebd334dbdfeccf66c43e3915b"
+dependencies = [
+    "standards",
+    "std",
+]

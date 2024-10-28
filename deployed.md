@@ -1,0 +1,11 @@
+# some addresses
+
+stream: 0x522348fb142a0bed36b3d7f5b59cb266e7bedd6256f7992bf59863e5b0d34bb2
+
+.env.b
+address_b : 0x628d72a9daed7dc2c58bc1d02a1bf6418e31f38a104063bb18811287c2303159
+
+.env
+address_a : 0x4a7e9cbc17fe3c766ccc39c2ccc8e062c150ba1d31afa70559259bfcfe369531
+
+token_test : 0xefda03232a674163b9e59fe8fa80cb84f872889fc80c91e12bb01d8bee5ff539
