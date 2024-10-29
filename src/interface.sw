@@ -30,7 +30,7 @@ abi StreamDisplay {
     fn get_stream(stream_id: u64) -> StreamData;
 
     #[storage(read)]
-    fn get_streams(owner: Identity) -> Vec<u64>;
+    fn get_streams(owner: Identity) -> Vec<StreamData>;
 
     #[storage(read)]
     fn will_claim(stream_id: u64) -> (u64, u64);

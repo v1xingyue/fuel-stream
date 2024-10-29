@@ -37,8 +37,8 @@ export type ContractIdInput = { bits: string };
 export type ContractIdOutput = ContractIdInput;
 export type OwnershipSetInput = { new_owner: IdentityInput };
 export type OwnershipSetOutput = { new_owner: IdentityOutput };
-export type StreamDataInput = { asset_id: AssetIdInput, sender: IdentityInput, recipient: IdentityInput, amount: BigNumberish, claimed_amount: BigNumberish, claimed_time: BigNumberish, paused_at: BigNumberish, start_time: BigNumberish, end_time: BigNumberish, status: StreamStatusInput };
-export type StreamDataOutput = { asset_id: AssetIdOutput, sender: IdentityOutput, recipient: IdentityOutput, amount: BN, claimed_amount: BN, claimed_time: BN, paused_at: BN, start_time: BN, end_time: BN, status: StreamStatusOutput };
+export type StreamDataInput = { id: BigNumberish, asset_id: AssetIdInput, sender: IdentityInput, recipient: IdentityInput, amount: BigNumberish, claimed_amount: BigNumberish, claimed_time: BigNumberish, paused_at: BigNumberish, start_time: BigNumberish, end_time: BigNumberish, status: StreamStatusInput };
+export type StreamDataOutput = { id: BN, asset_id: AssetIdOutput, sender: IdentityOutput, recipient: IdentityOutput, amount: BN, claimed_amount: BN, claimed_time: BN, paused_at: BN, start_time: BN, end_time: BN, status: StreamStatusOutput };
 
 const abi = {
   "programType": "contract",
@@ -65,11 +65,11 @@ const abi = {
       "metadataTypeId": 4
     },
     {
-      "type": "struct std::vec::Vec<u64>",
-      "concreteTypeId": "d5bfe1d4e1ace20166c9b50cadd47e862020561bde24f5189cfc2723f5ed76f4",
+      "type": "struct std::vec::Vec<struct stream::StreamData>",
+      "concreteTypeId": "4c10371bf377aa4541b6883b80d0dcb58a82e7f11c99e7bc89759c1605a600d1",
       "metadataTypeId": 11,
       "typeArguments": [
-        "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        "ba6159a4ba2e4b7f57f05a74ecb204cb765b9f330a46f28a63ca856cc6dbebc7"
       ]
     },
     {
@@ -230,6 +230,10 @@ const abi = {
       "type": "struct stream::StreamData",
       "metadataTypeId": 12,
       "components": [
+        {
+          "name": "id",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
         {
           "name": "asset_id",
           "typeId": 8
@@ -421,7 +425,7 @@ const abi = {
         }
       ],
       "name": "get_streams",
-      "output": "d5bfe1d4e1ace20166c9b50cadd47e862020561bde24f5189cfc2723f5ed76f4",
+      "output": "4c10371bf377aa4541b6883b80d0dcb58a82e7f11c99e7bc89759c1605a600d1",
       "attributes": [
         {
           "name": "storage",
@@ -507,7 +511,7 @@ export class FuelStream extends Contract {
     pause: InvokeFunction<[stream_id: BigNumberish], void>;
     resume: InvokeFunction<[stream_id: BigNumberish], void>;
     get_stream: InvokeFunction<[stream_id: BigNumberish], StreamDataOutput>;
-    get_streams: InvokeFunction<[owner: IdentityInput], Vec<BN>>;
+    get_streams: InvokeFunction<[owner: IdentityInput], Vec<StreamDataOutput>>;
     now: InvokeFunction<[], BN>;
     will_claim: InvokeFunction<[stream_id: BigNumberish], [BN, BN]>;
   };

@@ -89,6 +89,7 @@ impl Stream for Contract {
         let asset_id = msg_asset_id();
         let sender = msg_sender().unwrap();
         let stream_data = StreamData {
+            id: v,
             asset_id,
             sender,
             recipient,
@@ -192,12 +193,13 @@ impl StreamDisplay for Contract {
         storage.streams.get(stream_id).read()
     }
     #[storage(read)]
-    fn get_streams(owner: Identity) -> Vec<u64> {
+    fn get_streams(owner: Identity) -> Vec<StreamData> {
         let mut result = Vec::new();
         let mut i = 0;
         while i < storage.incoming_streams.get(owner).len() {
             let id = storage.incoming_streams.get(owner).get(i).unwrap().read();
-            result.push(id);
+            let stream_data = storage.streams.get(id).read();
+            result.push(stream_data);
             i += 1;
         }
         result

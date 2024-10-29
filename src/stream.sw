@@ -7,6 +7,7 @@ pub enum StreamStatus {
 }
 
 pub struct StreamData {
+    pub id: u64,
     pub asset_id: AssetId,
     pub sender: Identity,
     pub recipient: Identity,

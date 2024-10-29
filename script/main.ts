@@ -2,13 +2,13 @@ import { Command } from "commander";
 import dotenv from "dotenv";
 import { Address, Provider, Wallet } from "fuels";
 import fs from "fs";
-import { FuelStreamFactory, FuelStream } from "./contract-types";
+import { FuelStreamFactory, FuelStream } from "../pages/src/contract-types";
 
 const default_asset_id =
   "0xe618a5b8e36e4fca469d25c297e0eb4ebcf6e9b121be360de9839f3abd8b4905";
 
 const default_stream_address =
-  "0x14a101212b249697ac63209264cbb38f56d9a33d6cb4fbed4455bd69564ae849";
+  "0xa87934b9f2ceff160905a487e6d924ed7deb336fd73acac0f2694c7d6f056d17";
 dotenv.config({ path: process.env.ENV_FILE });
 
 const transactionLink = (txId: string) => {
@@ -223,7 +223,14 @@ program
     console.table(
       streams.map((stream) => {
         return {
-          stream_id: stream.toNumber(),
+          id: stream.id.toNumber(),
+          // asset_id: stream.asset_id?.bits,
+          sender: stream.sender.Address?.bits,
+          // recipient: stream.recipient.Address?.bits,
+          amount: stream.amount.toNumber(),
+          start_time: stream.start_time.toNumber(),
+          end_time: stream.end_time.toNumber(),
+          status: stream.status,
         };
       })
     );
