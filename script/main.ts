@@ -8,40 +8,41 @@ const default_asset_id =
   "0xe618a5b8e36e4fca469d25c297e0eb4ebcf6e9b121be360de9839f3abd8b4905";
 
 const default_stream_address =
-  "0x2314096163c62c16d77bb15ac387977205f726704d99c069d0c368d2f62f0e64";
+  "0x14a101212b249697ac63209264cbb38f56d9a33d6cb4fbed4455bd69564ae849";
 dotenv.config({ path: process.env.ENV_FILE });
+
+const transactionLink = (txId: string) => {
+  return `https://${
+    process.env.NETWORK === Network.MAINNET ? "app" : "app-testnet"
+  }.fuel.network/tx/${txId}`;
+};
 
 const program = new Command();
 
-program
-  .version("1.0.0")
-  .description("A Fuel Stream CLI Operator")
-  .option(
-    "--network <type>",
-    "specify your network [mainnet, testnet]",
-    "testnet"
-  );
+program.version("1.0.0").description("A Fuel Stream CLI Operator");
 
 enum Network {
   MAINNET = "mainnet",
   TESTNET = "testnet",
 }
 
-program.command("init").action(() => {
-  const options = program.opts();
-  const network = options.network;
-  console.log(`init command to .env ,network : ${network}`);
-  const account = Wallet.generate();
-  console.log(`new account address: ${account.address.toB256()}`);
-  const privateKey = account.privateKey;
-  // 写入 .env 文件
-  if (!fs.existsSync(".env")) {
-    fs.writeFileSync(".env", `PRIVATE_KEY=${privateKey}\n`);
-    fs.appendFileSync(".env", `NETWORK=${network}`);
-  } else {
-    console.log(".env file already exists");
-  }
-});
+program
+  .command("init")
+  .option("--network <network>", "the network, testnet or mainnet", "testnet")
+  .action((options) => {
+    const network = options.network;
+    console.log(`init command to .env ,network : ${network}`);
+    const account = Wallet.generate();
+    console.log(`new account address: ${account.address.toB256()}`);
+    const privateKey = account.privateKey;
+    // 写入 .env 文件
+    if (!fs.existsSync(".env")) {
+      fs.writeFileSync(".env", `PRIVATE_KEY=${privateKey}\n`);
+      fs.appendFileSync(".env", `NETWORK=${network}`);
+    } else {
+      console.log(".env file already exists");
+    }
+  });
 
 program.command("info").action(async () => {
   const privateKey = process.env.PRIVATE_KEY;
@@ -86,10 +87,7 @@ program
     const tx = await wallet.transfer(to, amount, asset_id);
     await tx.waitForResult();
 
-    console.log(
-      `transfer tx transactionId`,
-      `https://app.fuel.network/tx/${tx.id}`
-    );
+    console.log(`transfer tx transactionId`, transactionLink(tx.id));
   });
 
 program.command("deploy").action(async () => {
@@ -121,16 +119,14 @@ program.command("deploy").action(async () => {
       })
       .call();
   await waitForConstruct();
-  console.log(
-    `constructor tx transactionId`,
-    `https://app.fuel.network/tx/${transactionId}`
-  );
+  console.log(`constructor tx transactionId`, transactionLink(transactionId));
 });
 
 // 添加 send-stream 子命令
 program
   .command("send-stream")
   .option("--to <to>", "the recipient address")
+  .option("--step_count <step_count>", "stream step count", "120")
   .option("--unit-amount <unit_amount>", "the unit amount")
   .option("--asset_id <asset_id>", "the asset id", default_asset_id)
   .option(
@@ -145,12 +141,12 @@ program
       unitAmount: string;
       asset_id: string;
       stream: string;
+      step_count: string;
     }) => {
       console.table(params);
       const privateKey = process.env.PRIVATE_KEY;
       const wallet = Wallet.fromPrivateKey(privateKey as string);
       const network = process.env.NETWORK as Network;
-      // https://testnet.fuel.network/v1/graphql
       const provider = await Provider.create(
         `https://${
           network === Network.MAINNET ? "mainnet" : "testnet"
@@ -161,7 +157,7 @@ program
 
       const now = Math.floor(Date.now() / 1000);
       const start_time = now + 30;
-      const step_count = 90;
+      const step_count = Number(params.step_count);
       const end_time = start_time + step_count;
       const amount = Number(params.unitAmount) * step_count;
       console.log(`amount: ${amount}`);
@@ -189,9 +185,7 @@ program
       await waitForConstruct();
       console.log(
         `create stream transactionId`,
-        `https://${
-          network === Network.MAINNET ? "mainnet" : "app-testnet"
-        }.fuel.network/tx/${transactionId}`
+        transactionLink(transactionId)
       );
     }
   );
@@ -267,6 +261,8 @@ program
       end_time: result.value.end_time.toNumber(),
       claimed_amount: result.value.claimed_amount.toNumber(),
       claimed_time: result.value.claimed_time.toNumber(),
+      status: result.value.status,
+      paused_at: result.value.paused_at.toNumber(),
     });
   });
 
@@ -321,14 +317,64 @@ program
     const { transactionId, waitForResult: waitForClaim } =
       await stream.functions.claim(params.id).call();
     await waitForClaim();
-    console.log(
-      `claim transactionId`,
-      `https://${
-        network === Network.MAINNET ? "mainnet" : "app-testnet"
-      }.fuel.network/tx/${transactionId}`
-    );
+    console.log(`claim transactionId`, transactionLink(transactionId));
   });
 
+program
+  .command("pause")
+  .option(
+    "--stream <stream_address>",
+    "the stream address",
+    default_stream_address
+  )
+  .option("--id <stream_id>", "the stream id")
+  .action(async (params: { stream: string; id: string }) => {
+    const contractId = Address.fromB256(params.stream);
+    const privateKey = process.env.PRIVATE_KEY;
+    const wallet = Wallet.fromPrivateKey(privateKey as string);
+    const network = process.env.NETWORK as Network;
+    // https://testnet.fuel.network/v1/graphql
+    const provider = await Provider.create(
+      `https://${
+        network === Network.MAINNET ? "mainnet" : "testnet"
+      }.fuel.network/v1/graphql`
+    );
+    console.log(`provider: ${provider}`);
+    wallet.provider = provider;
+    const stream = new FuelStream(contractId, wallet);
+    const { transactionId, waitForResult: waitForClaim } =
+      await stream.functions.pause(params.id).call();
+    await waitForClaim();
+    console.log(`pause transactionId`, transactionLink(transactionId));
+  });
+
+program
+  .command("resume")
+  .option(
+    "--stream <stream_address>",
+    "the stream address",
+    default_stream_address
+  )
+  .option("--id <stream_id>", "the stream id")
+  .action(async (params: { stream: string; id: string }) => {
+    const contractId = Address.fromB256(params.stream);
+    const privateKey = process.env.PRIVATE_KEY;
+    const wallet = Wallet.fromPrivateKey(privateKey as string);
+    const network = process.env.NETWORK as Network;
+    // https://testnet.fuel.network/v1/graphql
+    const provider = await Provider.create(
+      `https://${
+        network === Network.MAINNET ? "mainnet" : "testnet"
+      }.fuel.network/v1/graphql`
+    );
+    console.log(`provider: ${provider}`);
+    wallet.provider = provider;
+    const stream = new FuelStream(contractId, wallet);
+    const { transactionId, waitForResult: waitForClaim } =
+      await stream.functions.resume(params.id).call();
+    await waitForClaim();
+    console.log(`resume transactionId`, transactionLink(transactionId));
+  });
 program
   .command("will-claim")
   .option(

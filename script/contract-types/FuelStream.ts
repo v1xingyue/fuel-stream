@@ -26,6 +26,8 @@ export type IdentityInput = Enum<{ Address: AddressInput, ContractId: ContractId
 export type IdentityOutput = Enum<{ Address: AddressOutput, ContractId: ContractIdOutput }>;
 export enum InitializationErrorInput { CannotReinitialized = 'CannotReinitialized' };
 export enum InitializationErrorOutput { CannotReinitialized = 'CannotReinitialized' };
+export enum StreamStatusInput { Paused = 'Paused', Active = 'Active', Completed = 'Completed' };
+export enum StreamStatusOutput { Paused = 'Paused', Active = 'Active', Completed = 'Completed' };
 
 export type AddressInput = { bits: string };
 export type AddressOutput = AddressInput;
@@ -35,8 +37,8 @@ export type ContractIdInput = { bits: string };
 export type ContractIdOutput = ContractIdInput;
 export type OwnershipSetInput = { new_owner: IdentityInput };
 export type OwnershipSetOutput = { new_owner: IdentityOutput };
-export type StreamDataInput = { asset_id: AssetIdInput, sender: IdentityInput, recipient: IdentityInput, amount: BigNumberish, claimed_amount: BigNumberish, claimed_time: BigNumberish, start_time: BigNumberish, end_time: BigNumberish };
-export type StreamDataOutput = { asset_id: AssetIdOutput, sender: IdentityOutput, recipient: IdentityOutput, amount: BN, claimed_amount: BN, claimed_time: BN, start_time: BN, end_time: BN };
+export type StreamDataInput = { asset_id: AssetIdInput, sender: IdentityInput, recipient: IdentityInput, amount: BigNumberish, claimed_amount: BigNumberish, claimed_time: BigNumberish, paused_at: BigNumberish, start_time: BigNumberish, end_time: BigNumberish, status: StreamStatusInput };
+export type StreamDataOutput = { asset_id: AssetIdOutput, sender: IdentityOutput, recipient: IdentityOutput, amount: BN, claimed_amount: BN, claimed_time: BN, paused_at: BN, start_time: BN, end_time: BN, status: StreamStatusOutput };
 
 const abi = {
   "programType": "contract",
@@ -60,12 +62,12 @@ const abi = {
     {
       "type": "enum sway_libs::ownership::errors::InitializationError",
       "concreteTypeId": "1dfe7feadc1d9667a4351761230f948744068a090fe91b1bc6763a90ed5d3893",
-      "metadataTypeId": 3
+      "metadataTypeId": 4
     },
     {
       "type": "struct std::vec::Vec<u64>",
       "concreteTypeId": "d5bfe1d4e1ace20166c9b50cadd47e862020561bde24f5189cfc2723f5ed76f4",
-      "metadataTypeId": 10,
+      "metadataTypeId": 11,
       "typeArguments": [
         "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
       ]
@@ -73,12 +75,12 @@ const abi = {
     {
       "type": "struct stream::StreamData",
       "concreteTypeId": "ba6159a4ba2e4b7f57f05a74ecb204cb765b9f330a46f28a63ca856cc6dbebc7",
-      "metadataTypeId": 11
+      "metadataTypeId": 12
     },
     {
       "type": "struct sway_libs::ownership::events::OwnershipSet",
       "concreteTypeId": "e1ef35033ea9d2956f17c3292dea4a46ce7d61fdf37bbebe03b7b965073f43b5",
-      "metadataTypeId": 12
+      "metadataTypeId": 13
     },
     {
       "type": "u64",
@@ -110,17 +112,35 @@ const abi = {
       "components": [
         {
           "name": "Address",
-          "typeId": 6
+          "typeId": 7
         },
         {
           "name": "ContractId",
-          "typeId": 8
+          "typeId": 9
+        }
+      ]
+    },
+    {
+      "type": "enum stream::StreamStatus",
+      "metadataTypeId": 3,
+      "components": [
+        {
+          "name": "Paused",
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
+        },
+        {
+          "name": "Active",
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
+        },
+        {
+          "name": "Completed",
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         }
       ]
     },
     {
       "type": "enum sway_libs::ownership::errors::InitializationError",
-      "metadataTypeId": 3,
+      "metadataTypeId": 4,
       "components": [
         {
           "name": "CannotReinitialized",
@@ -130,24 +150,14 @@ const abi = {
     },
     {
       "type": "generic T",
-      "metadataTypeId": 4
-    },
-    {
-      "type": "raw untyped ptr",
       "metadataTypeId": 5
     },
     {
-      "type": "struct std::address::Address",
-      "metadataTypeId": 6,
-      "components": [
-        {
-          "name": "bits",
-          "typeId": 1
-        }
-      ]
+      "type": "raw untyped ptr",
+      "metadataTypeId": 6
     },
     {
-      "type": "struct std::asset_id::AssetId",
+      "type": "struct std::address::Address",
       "metadataTypeId": 7,
       "components": [
         {
@@ -157,7 +167,7 @@ const abi = {
       ]
     },
     {
-      "type": "struct std::contract_id::ContractId",
+      "type": "struct std::asset_id::AssetId",
       "metadataTypeId": 8,
       "components": [
         {
@@ -167,12 +177,22 @@ const abi = {
       ]
     },
     {
-      "type": "struct std::vec::RawVec",
+      "type": "struct std::contract_id::ContractId",
       "metadataTypeId": 9,
       "components": [
         {
+          "name": "bits",
+          "typeId": 1
+        }
+      ]
+    },
+    {
+      "type": "struct std::vec::RawVec",
+      "metadataTypeId": 10,
+      "components": [
+        {
           "name": "ptr",
-          "typeId": 5
+          "typeId": 6
         },
         {
           "name": "cap",
@@ -180,20 +200,20 @@ const abi = {
         }
       ],
       "typeParameters": [
-        4
+        5
       ]
     },
     {
       "type": "struct std::vec::Vec",
-      "metadataTypeId": 10,
+      "metadataTypeId": 11,
       "components": [
         {
           "name": "buf",
-          "typeId": 9,
+          "typeId": 10,
           "typeArguments": [
             {
               "name": "",
-              "typeId": 4
+              "typeId": 5
             }
           ]
         },
@@ -203,16 +223,16 @@ const abi = {
         }
       ],
       "typeParameters": [
-        4
+        5
       ]
     },
     {
       "type": "struct stream::StreamData",
-      "metadataTypeId": 11,
+      "metadataTypeId": 12,
       "components": [
         {
           "name": "asset_id",
-          "typeId": 7
+          "typeId": 8
         },
         {
           "name": "sender",
@@ -235,18 +255,26 @@ const abi = {
           "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
         },
         {
+          "name": "paused_at",
+          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
           "name": "start_time",
           "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
         },
         {
           "name": "end_time",
           "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        },
+        {
+          "name": "status",
+          "typeId": 3
         }
       ]
     },
     {
       "type": "struct sway_libs::ownership::events::OwnershipSet",
-      "metadataTypeId": 12,
+      "metadataTypeId": 13,
       "components": [
         {
           "name": "new_owner",
@@ -326,6 +354,44 @@ const abi = {
         {
           "name": "payable",
           "arguments": []
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "stream_id",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "name": "pause",
+      "output": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "stream_id",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "name": "resume",
+      "output": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
         }
       ]
     },
@@ -420,6 +486,8 @@ export class FuelStreamInterface extends Interface {
     claim: FunctionFragment;
     constructor: FunctionFragment;
     create_stream: FunctionFragment;
+    pause: FunctionFragment;
+    resume: FunctionFragment;
     get_stream: FunctionFragment;
     get_streams: FunctionFragment;
     now: FunctionFragment;
@@ -436,6 +504,8 @@ export class FuelStream extends Contract {
     claim: InvokeFunction<[stream_id: BigNumberish], void>;
     constructor: InvokeFunction<[owner: IdentityInput], void>;
     create_stream: InvokeFunction<[recipient: IdentityInput, amount: BigNumberish, start_time: BigNumberish, end_time: BigNumberish], BN>;
+    pause: InvokeFunction<[stream_id: BigNumberish], void>;
+    resume: InvokeFunction<[stream_id: BigNumberish], void>;
     get_stream: InvokeFunction<[stream_id: BigNumberish], StreamDataOutput>;
     get_streams: InvokeFunction<[owner: IdentityInput], Vec<BN>>;
     now: InvokeFunction<[], BN>;

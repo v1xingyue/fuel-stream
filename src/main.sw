@@ -1,26 +1,47 @@
 contract;
 
-mod interface;
 mod stream;
+mod interface;
 
-use std::{context::msg_amount, hash::Hash, storage::storage_string::*, string::String};
-use std::array_conversions::{b256::*, u16::*, u256::*, u32::*, u64::*,};
-use std::bytes_conversions::{b256::*, u64::*};
-use std::{auth::msg_sender, hash::sha256, storage::storage_api::{read, write}};
+use interface::Stream;
+use interface::StreamDisplay;
+use stream::{StreamData, StreamStatus};
+
 use std::{
+    array_conversions::{
+        b256::*,
+        u16::*,
+        u256::*,
+        u32::*,
+        u64::*,
+    },
+    assert::assert,
     asset::{
         burn,
         mint_to,
         transfer,
     },
+    auth::msg_sender,
+    block::timestamp,
+    bytes_conversions::{
+        b256::*,
+        u64::*,
+    },
     call_frames::msg_asset_id,
+    context::msg_amount,
     context::this_balance,
-    storage::storage_string::*,
+    hash::Hash,
+    storage::{
+        storage_api::{
+            read,
+            write,
+        },
+        storage_string::*,
+        storage_vec::*,
+    },
+    string::String,
 };
-use std::block::timestamp;
-use interface::Stream;
-use stream::StreamData;
-use std::storage::storage_vec::*;
+
 use sway_libs::{
     asset::{
         base::{
@@ -53,6 +74,7 @@ storage {
     streams: StorageMap<u64, StreamData> = StorageMap {},
     incoming_streams: StorageMap<Identity, StorageVec<u64>> = StorageMap {},
 }
+
 impl Stream for Contract {
     #[storage(read, write), payable]
     fn create_stream(
@@ -75,6 +97,8 @@ impl Stream for Contract {
             end_time,
             claimed_amount: 0,
             claimed_time: start_time,
+            paused_at: 0,
+            status: StreamStatus::Active,
         };
         storage.streams.insert(v, stream_data);
         storage.incoming_streams.get(recipient).push(v);
@@ -84,11 +108,14 @@ impl Stream for Contract {
     #[storage(read, write)]
     fn claim(stream_id: u64) {
         let mut stream_data = storage.streams.get(stream_id).read();
+        match stream_data.status {
+            StreamStatus::Active => (),
+            _ => assert(false),
+        }
         let recipient = stream_data.recipient;
         let amount = stream_data.amount;
         let asset_id = stream_data.asset_id;
         let end_time = stream_data.end_time;
-
         let mut current_time: u64 = timestamp() - TAI64_DIFFERENCE;
         if (current_time > end_time) {
             current_time = end_time;
@@ -96,17 +123,14 @@ impl Stream for Contract {
         let time_elapsed = current_time - stream_data.claimed_time;
         let amount_per_interval = amount / (end_time - stream_data.claimed_time);
         let amount_to_send = time_elapsed * amount_per_interval;
-
         transfer(recipient, asset_id, amount_to_send);
-
         stream_data.claimed_amount += amount_to_send;
         stream_data.claimed_time = current_time;
         stream_data.amount = amount - amount_to_send;
+        if (stream_data.amount == 0) {
+            stream_data.status = StreamStatus::Completed;
+        }
         storage.streams.insert(stream_id, stream_data);
-    }
-    #[storage(read)]
-    fn get_stream(stream_id: u64) -> StreamData {
-        storage.streams.get(stream_id).read()
     }
 
     #[storage(read, write)]
@@ -114,6 +138,59 @@ impl Stream for Contract {
         initialize_ownership(owner);
     }
 
+    #[storage(read, write)]
+    fn pause(stream_id: u64) {
+        let mut stream_data = storage.streams.get(stream_id).read();
+        let mut current_time: u64 = timestamp() - TAI64_DIFFERENCE;
+        let end_time = stream_data.end_time;
+        match stream_data.status {
+            StreamStatus::Active => (),
+            _ => assert(false),
+        }
+        assert(current_time < end_time);
+        let amount = stream_data.amount;
+
+        // transfer token 
+        let time_elapsed = current_time - stream_data.claimed_time;
+        let amount_per_interval = amount / (end_time - stream_data.claimed_time);
+        let amount_to_send = time_elapsed * amount_per_interval;
+        let recipient = stream_data.recipient;
+        let asset_id = stream_data.asset_id;
+        transfer(recipient, asset_id, amount_to_send);
+
+        stream_data.claimed_amount += amount_to_send;
+        stream_data.claimed_time = current_time;
+        stream_data.amount = amount - amount_to_send;
+
+        stream_data.paused_at = current_time;
+        stream_data.status = StreamStatus::Paused;
+        storage.streams.insert(stream_id, stream_data);
+    }
+
+    #[storage(read, write)]
+    fn resume(stream_id: u64) {
+        let mut stream_data = storage.streams.get(stream_id).read();
+        match stream_data.status {
+            StreamStatus::Paused => (),
+            _ => assert(false),
+        }
+
+        let mut current_time: u64 = timestamp() - TAI64_DIFFERENCE;
+
+        stream_data.claimed_time = current_time;
+        stream_data.end_time = stream_data.end_time + (current_time - stream_data.paused_at);
+
+        stream_data.paused_at = 0;
+        stream_data.status = StreamStatus::Active;
+        storage.streams.insert(stream_id, stream_data);
+    }
+}
+
+impl StreamDisplay for Contract {
+    #[storage(read)]
+    fn get_stream(stream_id: u64) -> StreamData {
+        storage.streams.get(stream_id).read()
+    }
     #[storage(read)]
     fn get_streams(owner: Identity) -> Vec<u64> {
         let mut result = Vec::new();
@@ -125,24 +202,26 @@ impl Stream for Contract {
         }
         result
     }
-
     #[storage(read)]
     fn will_claim(stream_id: u64) -> (u64, u64) {
         let mut stream_data = storage.streams.get(stream_id).read();
-        let amount = stream_data.amount;
         let end_time = stream_data.end_time;
-        let claimed_time = stream_data.claimed_time;
-
         let mut current_time: u64 = timestamp() - TAI64_DIFFERENCE;
         if (current_time > end_time) {
             current_time = end_time;
         }
-        let time_elapsed = current_time - claimed_time;
-        let amount_per_interval = amount / (end_time - claimed_time);
-        let amount_to_send = time_elapsed * amount_per_interval;
-        (amount_to_send, current_time)
+        match stream_data.status {
+            StreamStatus::Paused => (0, current_time),
+            _ => {
+                let amount = stream_data.amount;
+                let claimed_time = stream_data.claimed_time;
+                let time_elapsed = current_time - claimed_time;
+                let amount_per_interval = amount / (end_time - claimed_time);
+                let amount_to_send = time_elapsed * amount_per_interval;
+                (amount_to_send, current_time)
+            },
+        }
     }
-
     fn now() -> u64 {
         timestamp() - TAI64_DIFFERENCE
     }
