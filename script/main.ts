@@ -2,7 +2,7 @@ import { Command } from "commander";
 import dotenv from "dotenv";
 import { Address, Provider, Wallet } from "fuels";
 import fs from "fs";
-import { FuelStreamFactory, FuelStream } from "../pages/src/contract-types";
+import { FuelStreamFactory, FuelStream } from "./contract-types";
 
 const default_asset_id =
   "0xe618a5b8e36e4fca469d25c297e0eb4ebcf6e9b121be360de9839f3abd8b4905";

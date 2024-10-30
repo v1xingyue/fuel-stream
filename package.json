@@ -3,19 +3,16 @@
 	"scripts": {
 		"lint:check": "npx prettier -c contracts/**",
 		"lint": "npx prettier --write ./scripts/**/*.ts",
-		"types:contract": "forc build --release && pnpm fuels typegen -i ./out/release/**-abi.json -o ./pages/src/contract-types"
+		"types:contract": "forc build --release && pnpm fuels typegen -i ./out/release/**-abi.json -o ./script/contract-types"
 	},
 	"dependencies": {
 		"@types/node": "^22.5.0",
 		"commander": "^12.1.0",
 		"dotenv": "^16.4.5",
-		"fuels": "^0.94.9"
+		"fuels": "^0.96.1"
 	},
 	"devDependencies": {
 		"ts-node": "^10.9.2",
 		"typescript": "^5.6.3"
-	},
-	"workspaces": [
-		"pages"
-	]
+	}
 }
