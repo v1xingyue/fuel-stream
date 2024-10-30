@@ -73,6 +73,7 @@ storage {
     counter: u64 = 123,
     streams: StorageMap<u64, StreamData> = StorageMap {},
     incoming_streams: StorageMap<Identity, StorageVec<u64>> = StorageMap {},
+    outgoing_streams: StorageMap<Identity, StorageVec<u64>> = StorageMap {},
 }
 
 impl Stream for Contract {
@@ -103,6 +104,7 @@ impl Stream for Contract {
         };
         storage.streams.insert(v, stream_data);
         storage.incoming_streams.get(recipient).push(v);
+        storage.outgoing_streams.get(sender).push(v);
         result
     }
 
@@ -193,11 +195,23 @@ impl StreamDisplay for Contract {
         storage.streams.get(stream_id).read()
     }
     #[storage(read)]
-    fn get_streams(owner: Identity) -> Vec<StreamData> {
+    fn get_incoming_streams(owner: Identity) -> Vec<StreamData> {
         let mut result = Vec::new();
         let mut i = 0;
         while i < storage.incoming_streams.get(owner).len() {
             let id = storage.incoming_streams.get(owner).get(i).unwrap().read();
+            let stream_data = storage.streams.get(id).read();
+            result.push(stream_data);
+            i += 1;
+        }
+        result
+    }
+    #[storage(read)]
+    fn get_outgoing_streams(owner: Identity) -> Vec<StreamData> {
+        let mut result = Vec::new();
+        let mut i = 0;
+        while i < storage.outgoing_streams.get(owner).len() {
+            let id = storage.outgoing_streams.get(owner).get(i).unwrap().read();
             let stream_data = storage.streams.get(id).read();
             result.push(stream_data);
             i += 1;

@@ -213,7 +213,7 @@ program
 
     const stream = new FuelStream(contractId, wallet);
     const result = await stream.functions
-      .get_streams({
+      .get_incoming_streams({
         Address: {
           bits: wallet.address.toB256(),
         },

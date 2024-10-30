@@ -5,7 +5,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 
 /*
-  Fuels version: 0.94.9
+  Fuels version: 0.96.1
 */
 
 import { Contract, Interface } from "fuels";
@@ -402,12 +402,12 @@ const abi = {
     {
       "inputs": [
         {
-          "name": "stream_id",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          "name": "owner",
+          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
         }
       ],
-      "name": "get_stream",
-      "output": "ba6159a4ba2e4b7f57f05a74ecb204cb765b9f330a46f28a63ca856cc6dbebc7",
+      "name": "get_incoming_streams",
+      "output": "4c10371bf377aa4541b6883b80d0dcb58a82e7f11c99e7bc89759c1605a600d1",
       "attributes": [
         {
           "name": "storage",
@@ -424,8 +424,26 @@ const abi = {
           "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
         }
       ],
-      "name": "get_streams",
+      "name": "get_outgoing_streams",
       "output": "4c10371bf377aa4541b6883b80d0dcb58a82e7f11c99e7bc89759c1605a600d1",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read"
+          ]
+        }
+      ]
+    },
+    {
+      "inputs": [
+        {
+          "name": "stream_id",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "name": "get_stream",
+      "output": "ba6159a4ba2e4b7f57f05a74ecb204cb765b9f330a46f28a63ca856cc6dbebc7",
       "attributes": [
         {
           "name": "storage",
@@ -492,8 +510,9 @@ export class FuelStreamInterface extends Interface {
     create_stream: FunctionFragment;
     pause: FunctionFragment;
     resume: FunctionFragment;
+    get_incoming_streams: FunctionFragment;
+    get_outgoing_streams: FunctionFragment;
     get_stream: FunctionFragment;
-    get_streams: FunctionFragment;
     now: FunctionFragment;
     will_claim: FunctionFragment;
   };
@@ -510,8 +529,9 @@ export class FuelStream extends Contract {
     create_stream: InvokeFunction<[recipient: IdentityInput, amount: BigNumberish, start_time: BigNumberish, end_time: BigNumberish], BN>;
     pause: InvokeFunction<[stream_id: BigNumberish], void>;
     resume: InvokeFunction<[stream_id: BigNumberish], void>;
+    get_incoming_streams: InvokeFunction<[owner: IdentityInput], Vec<StreamDataOutput>>;
+    get_outgoing_streams: InvokeFunction<[owner: IdentityInput], Vec<StreamDataOutput>>;
     get_stream: InvokeFunction<[stream_id: BigNumberish], StreamDataOutput>;
-    get_streams: InvokeFunction<[owner: IdentityInput], Vec<StreamDataOutput>>;
     now: InvokeFunction<[], BN>;
     will_claim: InvokeFunction<[stream_id: BigNumberish], [BN, BN]>;
   };

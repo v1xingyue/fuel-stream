@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/sendstream.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/contract-types/fuelstream.ts","./src/contract-types/fuelstreamfactory.ts","./src/contract-types/common.d.ts","./src/contract-types/index.ts"],"version":"5.6.3"}
+{"root":["./src/app.tsx","./src/sendstream.tsx","./src/streamdetail.tsx","./src/config.ts","./src/main.tsx","./src/vite-env.d.ts","./src/contract-types/fuelstream.ts","./src/contract-types/fuelstreamfactory.ts","./src/contract-types/common.d.ts","./src/contract-types/index.ts"],"version":"5.6.3"}

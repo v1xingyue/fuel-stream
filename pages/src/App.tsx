@@ -55,6 +55,9 @@ const formatTime = (timestamp: number) => {
 export default function App() {
   const [contract, setContract] = useState<FuelStream>();
   const [streams, setStreams] = useState<StreamDataOutput[]>([]);
+  const [outgoingStreams, setOutgoingStreams] = useState<StreamDataOutput[]>(
+    []
+  );
   const { connect, isConnecting } = useConnectUI();
   const { isConnected } = useIsConnected();
   const { wallet } = useWallet();
@@ -70,6 +73,13 @@ export default function App() {
     null
   );
 
+  // 添加新的状态和类型
+  type StreamType = "incoming" | "outgoing";
+  const [activeTab, setActiveTab] = useState<StreamType>("incoming");
+
+  // 添加加载状态
+  const [isLoading, setIsLoading] = useState(false);
+
   const getDisplayAddress = () => {
     if (!wallet?.address) return "";
     const address = showBech32
@@ -78,29 +88,66 @@ export default function App() {
     return truncateAddress(address);
   };
 
-  useEffect(() => {
-    async function getInitialStreams() {
-      if (isConnected && wallet) {
-        const streamContract = new FuelStream(CONTRACT_ID, wallet);
-        setContract(streamContract);
-        try {
-          const { value } = await streamContract.functions
-            .get_streams({
-              Address: {
-                bits: wallet.address.toB256(),
-              },
-            })
-            .get();
-          console.log("streams ================ :", value);
-          setStreams(value);
-        } catch (error) {
-          console.error("Failed to fetch streams ================  :", error);
-        }
-      }
-    }
+  // 创建加载数据的函数
+  const loadStreams = async (type: StreamType) => {
+    if (!isConnected || !wallet || !contract) return;
 
-    getInitialStreams();
+    setIsLoading(true);
+    try {
+      if (type === "incoming") {
+        const { value } = await contract.functions
+          .get_incoming_streams({
+            Address: {
+              bits: wallet.address.toB256(),
+            },
+          })
+          .get();
+        setStreams(value);
+      } else {
+        const { value } = await contract.functions
+          .get_outgoing_streams({
+            Address: {
+              bits: wallet.address.toB256(),
+            },
+          })
+          .get();
+        setOutgoingStreams(value);
+      }
+    } catch (error) {
+      console.error(`Failed to fetch ${type} streams:`, error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 监听钱包地址变化，重置 Tab 并加载数据
+  useEffect(() => {
+    if (wallet?.address) {
+      setActiveTab("incoming");
+      loadStreams("incoming");
+    }
+  }, [wallet?.address]);
+
+  // 初始化时只设置合约实例
+  useEffect(() => {
+    if (isConnected && wallet) {
+      const streamContract = new FuelStream(CONTRACT_ID, wallet);
+      setContract(streamContract);
+    }
   }, [isConnected, wallet]);
+
+  // 当合约实例准备好后，加载初始数据（incoming）
+  useEffect(() => {
+    if (contract) {
+      loadStreams("incoming");
+    }
+  }, [contract]);
+
+  // 处理 Tab 切换
+  const handleTabChange = (tab: StreamType) => {
+    setActiveTab(tab);
+    loadStreams(tab);
+  };
 
   useEffect(() => {
     const fetchBalances = async () => {
@@ -327,79 +374,122 @@ export default function App() {
               </button>
             </div>
 
-            <div className="w-full">
-              {showSendStream ? (
-                <SendStream
-                  onSuccess={() => {
-                    setShowSendStream(false);
-                  }}
-                  onSubmit={handleCreateStream}
-                />
-              ) : selectedStream ? (
-                <StreamDetail
-                  stream={selectedStream}
-                  onBack={handleBackToList}
-                />
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="table w-full">
-                    <thead>
-                      <tr>
-                        <th>Stream ID</th>
-                        <th>Sender</th>
-                        <th>Amount</th>
-                        <th>Asset ID</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {streams.length > 0 ? (
-                        streams.map((stream) => (
-                          <tr key={stream.id.toString()}>
-                            <td>{stream.id.toString()}</td>
-                            <td title={stream.sender.Address?.bits}>
-                              {truncateAddress(
-                                stream.sender.Address?.bits || ""
-                              )}
-                            </td>
-                            <td>{stream.amount.toString()}</td>
-                            <td title={stream.asset_id.bits}>
-                              {truncateAddress(stream.asset_id.bits)}
-                            </td>
-                            <td>{formatTime(Number(stream.start_time))}</td>
-                            <td>{formatTime(Number(stream.end_time))}</td>
-                            <td>{stream.status.toString()}</td>
-                            <td>
-                              <button
-                                className="btn btn-ghost btn-sm"
-                                onClick={() => handlePreviewStream(stream)}
-                                title="Preview Stream"
+            {!showSendStream && !selectedStream && (
+              <div className="w-full">
+                <div className="flex gap-2 mb-4">
+                  <button
+                    className={`btn btn-sm ${
+                      activeTab === "incoming" ? "btn-primary" : "btn-ghost"
+                    }`}
+                    onClick={() => handleTabChange("incoming")}
+                  >
+                    Incoming
+                  </button>
+                  <button
+                    className={`btn btn-sm ${
+                      activeTab === "outgoing" ? "btn-primary" : "btn-ghost"
+                    }`}
+                    onClick={() => handleTabChange("outgoing")}
+                  >
+                    Outgoing
+                  </button>
+                </div>
+
+                {isLoading ? (
+                  <div className="w-full text-center py-8">
+                    <span className="loading loading-spinner loading-md"></span>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="table w-full">
+                      <thead>
+                        <tr>
+                          <th>Stream ID</th>
+                          <th>
+                            {activeTab === "incoming" ? "Sender" : "Recipient"}
+                          </th>
+                          <th>Amount</th>
+                          <th>Asset ID</th>
+                          <th>Start Time</th>
+                          <th>End Time</th>
+                          <th>Status</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(activeTab === "incoming" ? streams : outgoingStreams)
+                          .length > 0 ? (
+                          (activeTab === "incoming"
+                            ? streams
+                            : outgoingStreams
+                          ).map((stream) => (
+                            <tr key={stream.id.toString()}>
+                              <td>{stream.id.toString()}</td>
+                              <td
+                                title={
+                                  activeTab === "incoming"
+                                    ? stream.sender.Address?.bits
+                                    : stream.recipient.Address?.bits
+                                }
                               >
-                                <MdRemoveRedEye className="text-lg" />
-                              </button>
+                                {truncateAddress(
+                                  activeTab === "incoming"
+                                    ? stream.sender.Address?.bits || ""
+                                    : stream.recipient.Address?.bits || ""
+                                )}
+                              </td>
+                              <td>{stream.amount.toString()}</td>
+                              <td title={stream.asset_id.bits}>
+                                {truncateAddress(stream.asset_id.bits)}
+                              </td>
+                              <td>{formatTime(Number(stream.start_time))}</td>
+                              <td>{formatTime(Number(stream.end_time))}</td>
+                              <td>{stream.status.toString()}</td>
+                              <td>
+                                <button
+                                  className="btn btn-ghost btn-sm"
+                                  onClick={() => handlePreviewStream(stream)}
+                                  title="Preview Stream"
+                                >
+                                  <MdRemoveRedEye className="text-lg" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan={8}
+                              className="text-center py-8 text-gray-500"
+                            >
+                              <div className="flex flex-col items-center gap-2">
+                                <p>No {activeTab} streams found</p>
+                              </div>
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan={8}
-                            className="text-center py-8 text-gray-500"
-                          >
-                            <div className="flex flex-col items-center gap-2">
-                              <p>No streams found</p>
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {showSendStream && (
+              <SendStream
+                tokens={TOKENS}
+                onSubmit={handleCreateStream}
+                onCancel={() => setShowSendStream(false)}
+              />
+            )}
+
+            {selectedStream && (
+              <StreamDetail
+                stream={selectedStream}
+                contract={contract}
+                onBack={handleBackToList}
+              />
+            )}
 
             {balance && balance.toNumber() === 0 && (
               <div className="alert alert-info w-full">
