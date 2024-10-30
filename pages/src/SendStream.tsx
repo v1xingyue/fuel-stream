@@ -190,19 +190,24 @@ export default function SendStream({ onSuccess, onSubmit }: SendStreamProps) {
     try {
       setIsSubmitting(true);
 
+      console.log(confirmData.totalAmount, typeof confirmData.totalAmount);
       // 将总量转换为考虑小数位数的大数
-      const totalAmountWithDecimals = bn(Number(confirmData.totalAmount))
-        .mul(bn.parseUnits("1", selectedToken?.decimals || 0))
+      const totalAmountWithDecimals = bn
+        .parseUnits(confirmData.totalAmount, selectedToken?.decimals || 0)
         .toString();
       console.log(totalAmountWithDecimals);
 
-      await onSubmit({
+      const params = {
         recipient: formData.recipient,
         assetId: formData.assetId,
         startTime: formData.startTime,
         endTime: formData.endTime,
         totalAmount: totalAmountWithDecimals, // 传递转换后的总量
-      });
+      };
+
+      console.log(params);
+
+      await onSubmit(params);
 
       dialogRef.current?.close();
       onSuccess();
