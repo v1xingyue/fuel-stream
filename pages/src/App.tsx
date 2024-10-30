@@ -477,18 +477,16 @@ export default function App() {
 
             {showSendStream && (
               <SendStream
-                tokens={TOKENS}
                 onSubmit={handleCreateStream}
-                onCancel={() => setShowSendStream(false)}
+                onSuccess={() => {
+                  handleTabChange("incoming");
+                  setShowSendStream(false);
+                }}
               />
             )}
 
             {selectedStream && (
-              <StreamDetail
-                stream={selectedStream}
-                contract={contract}
-                onBack={handleBackToList}
-              />
+              <StreamDetail stream={selectedStream} onBack={handleBackToList} />
             )}
 
             {balance && balance.toNumber() === 0 && (
