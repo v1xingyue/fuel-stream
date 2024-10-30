@@ -1,7 +1,7 @@
 import { StreamDataOutput } from "./contract-types/FuelStream";
 import { TOKENS } from "./config";
 import { bn } from "fuels";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { FuelStream } from "./contract-types";
 import { CONTRACT_ID } from "./config";
 import { useWallet } from "@fuels/react";
@@ -11,13 +11,26 @@ interface StreamDetailProps {
   onBack: () => void;
 }
 
-const StreamDetail = ({ stream }: StreamDetailProps) => {
+const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
   const { wallet } = useWallet();
   const [currentTime, setCurrentTime] = useState<number>(
     Math.floor(Date.now() / 1000)
   );
   const [claimableAmount, setClaimableAmount] = useState<string>("0");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPausing, setIsPausing] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
+
+  // 检查当前用户是否为 sender
+  const isSender = useMemo(() => {
+    if (!wallet?.address) return false;
+    return (
+      stream.sender.Address?.bits.toLowerCase() ===
+      wallet.address.toB256().toLowerCase()
+    );
+  }, [wallet?.address, stream.sender]);
 
   // 获取代币信息
   const token = TOKENS.find((t) => t.id === stream.asset_id.bits) || {
@@ -44,6 +57,11 @@ const StreamDetail = ({ stream }: StreamDetailProps) => {
 
   // 设置轮询
   useEffect(() => {
+    // 如果状态是 Paused，不启动计时器
+    if (stream.status.toString() === "Paused") {
+      return;
+    }
+
     const timer = setInterval(() => {
       const now = Math.floor(Date.now() / 1000);
       setCurrentTime(now);
@@ -51,7 +69,7 @@ const StreamDetail = ({ stream }: StreamDetailProps) => {
     }, 1000);
 
     return () => clearInterval(timer);
-  });
+  }, [stream.status]);
 
   // 格式化代币金额
   const formatAmount = (amount: string) => {
@@ -96,6 +114,57 @@ const StreamDetail = ({ stream }: StreamDetailProps) => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handlePause = async () => {
+    if (!wallet) return;
+    try {
+      setIsPausing(true);
+      const contract = new FuelStream(CONTRACT_ID, wallet);
+      const tx = await contract.functions.pause(stream.id).call();
+      await tx.waitForResult();
+      console.log("Stream paused successfully");
+    } catch (error) {
+      console.error("Failed to pause stream:", error);
+    } finally {
+      setIsPausing(false);
+    }
+  };
+
+  const handleResume = async () => {
+    if (!wallet) return;
+    try {
+      setIsResuming(true);
+      const contract = new FuelStream(CONTRACT_ID, wallet);
+      const tx = await contract.functions.resume(stream.id).call();
+      await tx.waitForResult();
+      console.log("Stream resumed successfully");
+    } catch (error) {
+      console.error("Failed to resume stream:", error);
+    } finally {
+      setIsResuming(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!wallet) return;
+    try {
+      setIsCanceling(true);
+      const contract = new FuelStream(CONTRACT_ID, wallet);
+      const tx = await contract.functions.cancel(stream.id).call();
+      await tx.waitForResult();
+      console.log("Stream cancelled successfully");
+    } catch (error) {
+      console.error("Failed to cancel stream:", error);
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
+  // 添加一个辅助函数来检查是否应该显示操作相关内容
+  const shouldShowOperations = () => {
+    const status = stream.status.toString();
+    return status !== "Cancelled" && status !== "Completed";
   };
 
   return (
@@ -159,44 +228,60 @@ const StreamDetail = ({ stream }: StreamDetailProps) => {
             <span className="font-medium">{formatTime(currentTime)}</span>
           </div>
 
-          {/* Claimable Amount - 使用更大更醒目的样式 */}
-          <div className="flex flex-col items-center justify-center py-8">
-            <div className="text-2xl font-bold text-primary">
-              {claimableAmount} {token.symbol}
+          {/* Claimable Amount - 只在活跃状态下显示 */}
+          {shouldShowOperations() && stream.status.toString() !== "Paused" && (
+            <div className="flex flex-col items-center justify-center py-8">
+              <div className="text-2xl font-bold text-primary">
+                {claimableAmount} {token.symbol}
+              </div>
+              <div className="text-sm text-gray-500 mt-2">
+                available to claim
+              </div>
             </div>
-            <div className="text-sm text-gray-500 mt-2">available to claim</div>
-          </div>
+          )}
 
-          {/* Progress Bar */}
-          <div className="w-full">
-            <div className="w-full bg-gray-200 rounded-full h-2.5">
-              <div
-                className="bg-primary h-2.5 rounded-full transition-all duration-500"
-                style={{
-                  width: `${Math.min(
-                    ((currentTime - Number(stream.start_time)) /
-                      (Number(stream.end_time) - Number(stream.start_time))) *
-                      100,
-                    100
-                  )}%`,
-                }}
-              ></div>
+          {/* Progress Bar - 只在活跃状态下显示 */}
+          {shouldShowOperations() && (
+            <div className="w-full">
+              <div className="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  className="bg-primary h-2.5 rounded-full transition-all duration-500"
+                  style={{
+                    width: `${Math.min(
+                      ((currentTime - Number(stream.start_time)) /
+                        (Number(stream.end_time) - Number(stream.start_time))) *
+                        100,
+                      100
+                    )}%`,
+                    opacity:
+                      stream.status.toString() === "Paused" ? "0.5" : "1",
+                  }}
+                ></div>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Stream Status Indicator */}
           <div className="flex items-center gap-2">
             <span className="text-gray-500 min-w-[120px]">Stream Status:</span>
             <span
               className={`font-medium ${
-                currentTime < Number(stream.start_time)
+                stream.status.toString() === "Cancelled"
+                  ? "text-error"
+                  : stream.status.toString() === "Paused"
+                  ? "text-warning"
+                  : currentTime < Number(stream.start_time)
                   ? "text-warning"
                   : currentTime >= Number(stream.end_time)
                   ? "text-success"
                   : "text-primary"
               }`}
             >
-              {currentTime < Number(stream.start_time)
+              {stream.status.toString() === "Cancelled"
+                ? "Cancelled"
+                : stream.status.toString() === "Paused"
+                ? "Paused"
+                : currentTime < Number(stream.start_time)
                 ? "Pending"
                 : currentTime >= Number(stream.end_time)
                 ? "Completed"
@@ -204,12 +289,50 @@ const StreamDetail = ({ stream }: StreamDetailProps) => {
             </span>
           </div>
 
-          {/* Claim Button Section */}
-          <div className="flex flex-col items-center gap-4 pt-6">
-            <button
-              className={`
-                btn btn-lg gap-2 min-w-[200px]
-                ${
+          {/* Sender Actions Section - 只在活跃状态下显示 */}
+          {shouldShowOperations() && isSender && (
+            <div className="flex flex-col items-center gap-4 pt-6">
+              <div className="flex gap-4">
+                <button
+                  className={`btn btn-error gap-2 ${
+                    isCanceling ? "loading" : ""
+                  }`}
+                  onClick={handleCancel}
+                  disabled={isCanceling}
+                >
+                  Cancel Stream
+                </button>
+
+                {stream.status.toString() !== "Paused" ? (
+                  <button
+                    className={`btn btn-warning gap-2 ${
+                      isPausing ? "loading" : ""
+                    }`}
+                    onClick={handlePause}
+                    disabled={isPausing}
+                  >
+                    Pause Stream
+                  </button>
+                ) : (
+                  <button
+                    className={`btn btn-success gap-2 ${
+                      isResuming ? "loading" : ""
+                    }`}
+                    onClick={handleResume}
+                    disabled={isResuming}
+                  >
+                    Resume Stream
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Claim Button Section - 只在活跃状态且非 sender 时显示 */}
+          {shouldShowOperations() && !isSender && (
+            <div className="flex flex-col items-center gap-4 pt-6">
+              <button
+                className={`btn btn-lg gap-2 min-w-[200px] ${
                   stream.status.toString() === "Claimed"
                     ? "btn-disabled bg-gray-500 border-gray-500 text-gray-300"
                     : currentTime < Number(stream.start_time)
@@ -217,30 +340,30 @@ const StreamDetail = ({ stream }: StreamDetailProps) => {
                     : Number(claimableAmount) === 0
                     ? "btn-disabled"
                     : "btn-primary hover:btn-primary-focus"
+                }`}
+                onClick={handleClaim}
+                disabled={
+                  isSubmitting ||
+                  currentTime < Number(stream.start_time) ||
+                  Number(claimableAmount) === 0 ||
+                  stream.status.toString() === "Claimed"
                 }
-              `}
-              onClick={handleClaim}
-              disabled={
-                isSubmitting ||
-                currentTime < Number(stream.start_time) ||
-                Number(claimableAmount) === 0 ||
-                stream.status.toString() === "Claimed"
-              }
-            >
-              {isSubmitting && (
-                <span className="loading loading-spinner loading-sm"></span>
-              )}
-              {stream.status.toString() === "Claimed"
-                ? "Already Claimed"
-                : currentTime < Number(stream.start_time)
-                ? "Not Started Yet"
-                : Number(claimableAmount) === 0
-                ? "Nothing to Claim"
-                : isSubmitting
-                ? "Claiming..."
-                : "Claim Tokens"}
-            </button>
-          </div>
+              >
+                {isSubmitting && (
+                  <span className="loading loading-spinner loading-sm"></span>
+                )}
+                {stream.status.toString() === "Claimed"
+                  ? "Already Claimed"
+                  : currentTime < Number(stream.start_time)
+                  ? "Not Started Yet"
+                  : Number(claimableAmount) === 0
+                  ? "Nothing to Claim"
+                  : isSubmitting
+                  ? "Claiming..."
+                  : "Claim Tokens"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

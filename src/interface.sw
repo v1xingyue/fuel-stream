@@ -23,6 +23,9 @@ abi Stream {
 
     #[storage(read, write)]
     fn resume(stream_id: u64);
+
+    #[storage(read, write)]
+    fn cancel(stream_id: u64);
 }
 
 abi StreamDisplay {

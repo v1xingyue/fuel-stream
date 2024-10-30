@@ -151,6 +151,8 @@ impl Stream for Contract {
             _ => assert(false),
         }
         assert(current_time < end_time);
+        let sender = msg_sender().unwrap();
+        assert(stream_data.sender == sender);
         let amount = stream_data.amount;
 
         // transfer token 
@@ -177,6 +179,8 @@ impl Stream for Contract {
             StreamStatus::Paused => (),
             _ => assert(false),
         }
+        let sender = msg_sender().unwrap();
+        assert(stream_data.sender == sender);
 
         let mut current_time: u64 = timestamp() - TAI64_DIFFERENCE;
 
@@ -185,6 +189,44 @@ impl Stream for Contract {
 
         stream_data.paused_at = 0;
         stream_data.status = StreamStatus::Active;
+        storage.streams.insert(stream_id, stream_data);
+    }
+
+    #[storage(read, write)]
+    fn cancel(stream_id: u64) {
+        let mut stream_data = storage.streams.get(stream_id).read();
+        match stream_data.status {
+            StreamStatus::Active => (),
+            StreamStatus::Paused => (),
+            _ => assert(false),
+        }
+
+        let sender = msg_sender().unwrap();
+        assert(stream_data.sender == sender);
+
+        let mut current_time: u64 = timestamp() - TAI64_DIFFERENCE;
+        let end_time = stream_data.end_time;
+        if (current_time > end_time) {
+            current_time = end_time;
+        }
+        let amount = stream_data.amount;
+
+        // transfer token 
+        let time_elapsed = current_time - stream_data.claimed_time;
+        let amount_per_interval = amount / (end_time - stream_data.claimed_time);
+        let amount_to_send = time_elapsed * amount_per_interval;
+        let recipient = stream_data.recipient;
+        let sender = stream_data.sender;
+        let asset_id = stream_data.asset_id;
+
+        transfer(recipient, asset_id, amount_to_send);
+        transfer(sender, asset_id, amount - amount_to_send);
+
+        stream_data.status = StreamStatus::Cancelled;
+        stream_data.claimed_amount += amount_to_send;
+        stream_data.claimed_time = current_time;
+        stream_data.amount = 0;
+
         storage.streams.insert(stream_id, stream_data);
     }
 }

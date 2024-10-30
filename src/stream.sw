@@ -4,6 +4,7 @@ pub enum StreamStatus {
     Paused: (),
     Active: (),
     Completed: (),
+    Cancelled: (),
 }
 
 pub struct StreamData {

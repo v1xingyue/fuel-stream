@@ -26,8 +26,8 @@ export type IdentityInput = Enum<{ Address: AddressInput, ContractId: ContractId
 export type IdentityOutput = Enum<{ Address: AddressOutput, ContractId: ContractIdOutput }>;
 export enum InitializationErrorInput { CannotReinitialized = 'CannotReinitialized' };
 export enum InitializationErrorOutput { CannotReinitialized = 'CannotReinitialized' };
-export enum StreamStatusInput { Paused = 'Paused', Active = 'Active', Completed = 'Completed' };
-export enum StreamStatusOutput { Paused = 'Paused', Active = 'Active', Completed = 'Completed' };
+export enum StreamStatusInput { Paused = 'Paused', Active = 'Active', Completed = 'Completed', Cancelled = 'Cancelled' };
+export enum StreamStatusOutput { Paused = 'Paused', Active = 'Active', Completed = 'Completed', Cancelled = 'Cancelled' };
 
 export type AddressInput = { bits: string };
 export type AddressOutput = AddressInput;
@@ -134,6 +134,10 @@ const abi = {
         },
         {
           "name": "Completed",
+          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
+        },
+        {
+          "name": "Cancelled",
           "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
         }
       ]
@@ -288,6 +292,25 @@ const abi = {
     }
   ],
   "functions": [
+    {
+      "inputs": [
+        {
+          "name": "stream_id",
+          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+        }
+      ],
+      "name": "cancel",
+      "output": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+      "attributes": [
+        {
+          "name": "storage",
+          "arguments": [
+            "read",
+            "write"
+          ]
+        }
+      ]
+    },
     {
       "inputs": [
         {
@@ -505,6 +528,7 @@ export class FuelStreamInterface extends Interface {
   }
 
   declare functions: {
+    cancel: FunctionFragment;
     claim: FunctionFragment;
     constructor: FunctionFragment;
     create_stream: FunctionFragment;
@@ -524,6 +548,7 @@ export class FuelStream extends Contract {
 
   declare interface: FuelStreamInterface;
   declare functions: {
+    cancel: InvokeFunction<[stream_id: BigNumberish], void>;
     claim: InvokeFunction<[stream_id: BigNumberish], void>;
     constructor: InvokeFunction<[owner: IdentityInput], void>;
     create_stream: InvokeFunction<[recipient: IdentityInput, amount: BigNumberish, start_time: BigNumberish, end_time: BigNumberish], BN>;
