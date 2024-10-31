@@ -8,5 +8,5 @@
   Fuels version: 0.96.1
 */
 
-export { FuelStream } from './FuelStream';
-export { FuelStreamFactory } from './FuelStreamFactory';
+export { FuelStream } from "./FuelStream";
+export { FuelStreamFactory } from "./FuelStreamFactory";

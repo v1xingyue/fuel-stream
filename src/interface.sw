@@ -26,6 +26,9 @@ abi Stream {
 
     #[storage(read, write)]
     fn cancel(stream_id: u64);
+
+    #[storage(read, write)]
+    fn register_token(token: AssetId);
 }
 
 abi StreamDisplay {

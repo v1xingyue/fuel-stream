@@ -18,16 +18,36 @@ import type {
   BN,
   FunctionFragment,
   InvokeFunction,
-} from 'fuels';
+} from "fuels";
 
 import type { Enum, Vec } from "./common";
 
-export type IdentityInput = Enum<{ Address: AddressInput, ContractId: ContractIdInput }>;
-export type IdentityOutput = Enum<{ Address: AddressOutput, ContractId: ContractIdOutput }>;
-export enum InitializationErrorInput { CannotReinitialized = 'CannotReinitialized' };
-export enum InitializationErrorOutput { CannotReinitialized = 'CannotReinitialized' };
-export enum StreamStatusInput { Paused = 'Paused', Active = 'Active', Completed = 'Completed', Cancelled = 'Cancelled' };
-export enum StreamStatusOutput { Paused = 'Paused', Active = 'Active', Completed = 'Completed', Cancelled = 'Cancelled' };
+export type IdentityInput = Enum<{
+  Address: AddressInput;
+  ContractId: ContractIdInput;
+}>;
+export type IdentityOutput = Enum<{
+  Address: AddressOutput;
+  ContractId: ContractIdOutput;
+}>;
+export enum InitializationErrorInput {
+  CannotReinitialized = "CannotReinitialized",
+}
+export enum InitializationErrorOutput {
+  CannotReinitialized = "CannotReinitialized",
+}
+export enum StreamStatusInput {
+  Paused = "Paused",
+  Active = "Active",
+  Completed = "Completed",
+  Cancelled = "Cancelled",
+}
+export enum StreamStatusOutput {
+  Paused = "Paused",
+  Active = "Active",
+  Completed = "Completed",
+  Cancelled = "Cancelled",
+}
 
 export type AddressInput = { bits: string };
 export type AddressOutput = AddressInput;
@@ -37,489 +57,533 @@ export type ContractIdInput = { bits: string };
 export type ContractIdOutput = ContractIdInput;
 export type OwnershipSetInput = { new_owner: IdentityInput };
 export type OwnershipSetOutput = { new_owner: IdentityOutput };
-export type StreamDataInput = { id: BigNumberish, asset_id: AssetIdInput, sender: IdentityInput, recipient: IdentityInput, amount: BigNumberish, claimed_amount: BigNumberish, claimed_time: BigNumberish, paused_at: BigNumberish, start_time: BigNumberish, end_time: BigNumberish, status: StreamStatusInput };
-export type StreamDataOutput = { id: BN, asset_id: AssetIdOutput, sender: IdentityOutput, recipient: IdentityOutput, amount: BN, claimed_amount: BN, claimed_time: BN, paused_at: BN, start_time: BN, end_time: BN, status: StreamStatusOutput };
+export type StreamDataInput = {
+  id: BigNumberish;
+  asset_id: AssetIdInput;
+  sender: IdentityInput;
+  recipient: IdentityInput;
+  amount: BigNumberish;
+  claimed_amount: BigNumberish;
+  claimed_time: BigNumberish;
+  paused_at: BigNumberish;
+  start_time: BigNumberish;
+  end_time: BigNumberish;
+  status: StreamStatusInput;
+};
+export type StreamDataOutput = {
+  id: BN;
+  asset_id: AssetIdOutput;
+  sender: IdentityOutput;
+  recipient: IdentityOutput;
+  amount: BN;
+  claimed_amount: BN;
+  claimed_time: BN;
+  paused_at: BN;
+  start_time: BN;
+  end_time: BN;
+  status: StreamStatusOutput;
+};
 
 const abi = {
-  "programType": "contract",
-  "specVersion": "1",
-  "encodingVersion": "1",
-  "concreteTypes": [
+  programType: "contract",
+  specVersion: "1",
+  encodingVersion: "1",
+  concreteTypes: [
     {
-      "type": "()",
-      "concreteTypeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
+      type: "()",
+      concreteTypeId:
+        "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
     },
     {
-      "type": "(u64, u64)",
-      "concreteTypeId": "41bd1a98f0a59642d8f824c805b798a5f268d1f7d05808eb05c4189c493f1be0",
-      "metadataTypeId": 0
+      type: "(u64, u64)",
+      concreteTypeId:
+        "41bd1a98f0a59642d8f824c805b798a5f268d1f7d05808eb05c4189c493f1be0",
+      metadataTypeId: 0,
     },
     {
-      "type": "enum std::identity::Identity",
-      "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335",
-      "metadataTypeId": 2
+      type: "enum std::identity::Identity",
+      concreteTypeId:
+        "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335",
+      metadataTypeId: 2,
     },
     {
-      "type": "enum sway_libs::ownership::errors::InitializationError",
-      "concreteTypeId": "1dfe7feadc1d9667a4351761230f948744068a090fe91b1bc6763a90ed5d3893",
-      "metadataTypeId": 4
+      type: "enum sway_libs::ownership::errors::InitializationError",
+      concreteTypeId:
+        "1dfe7feadc1d9667a4351761230f948744068a090fe91b1bc6763a90ed5d3893",
+      metadataTypeId: 4,
     },
     {
-      "type": "struct std::vec::Vec<struct stream::StreamData>",
-      "concreteTypeId": "4c10371bf377aa4541b6883b80d0dcb58a82e7f11c99e7bc89759c1605a600d1",
-      "metadataTypeId": 11,
-      "typeArguments": [
-        "ba6159a4ba2e4b7f57f05a74ecb204cb765b9f330a46f28a63ca856cc6dbebc7"
-      ]
-    },
-    {
-      "type": "struct stream::StreamData",
-      "concreteTypeId": "ba6159a4ba2e4b7f57f05a74ecb204cb765b9f330a46f28a63ca856cc6dbebc7",
-      "metadataTypeId": 12
-    },
-    {
-      "type": "struct sway_libs::ownership::events::OwnershipSet",
-      "concreteTypeId": "e1ef35033ea9d2956f17c3292dea4a46ce7d61fdf37bbebe03b7b965073f43b5",
-      "metadataTypeId": 13
-    },
-    {
-      "type": "u64",
-      "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-    }
-  ],
-  "metadataTypes": [
-    {
-      "type": "(_, _)",
-      "metadataTypeId": 0,
-      "components": [
-        {
-          "name": "__tuple_element",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        },
-        {
-          "name": "__tuple_element",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
-      ]
-    },
-    {
-      "type": "b256",
-      "metadataTypeId": 1
-    },
-    {
-      "type": "enum std::identity::Identity",
-      "metadataTypeId": 2,
-      "components": [
-        {
-          "name": "Address",
-          "typeId": 7
-        },
-        {
-          "name": "ContractId",
-          "typeId": 9
-        }
-      ]
-    },
-    {
-      "type": "enum stream::StreamStatus",
-      "metadataTypeId": 3,
-      "components": [
-        {
-          "name": "Paused",
-          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
-        },
-        {
-          "name": "Active",
-          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
-        },
-        {
-          "name": "Completed",
-          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
-        },
-        {
-          "name": "Cancelled",
-          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
-        }
-      ]
-    },
-    {
-      "type": "enum sway_libs::ownership::errors::InitializationError",
-      "metadataTypeId": 4,
-      "components": [
-        {
-          "name": "CannotReinitialized",
-          "typeId": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d"
-        }
-      ]
-    },
-    {
-      "type": "generic T",
-      "metadataTypeId": 5
-    },
-    {
-      "type": "raw untyped ptr",
-      "metadataTypeId": 6
-    },
-    {
-      "type": "struct std::address::Address",
-      "metadataTypeId": 7,
-      "components": [
-        {
-          "name": "bits",
-          "typeId": 1
-        }
-      ]
-    },
-    {
-      "type": "struct std::asset_id::AssetId",
-      "metadataTypeId": 8,
-      "components": [
-        {
-          "name": "bits",
-          "typeId": 1
-        }
-      ]
-    },
-    {
-      "type": "struct std::contract_id::ContractId",
-      "metadataTypeId": 9,
-      "components": [
-        {
-          "name": "bits",
-          "typeId": 1
-        }
-      ]
-    },
-    {
-      "type": "struct std::vec::RawVec",
-      "metadataTypeId": 10,
-      "components": [
-        {
-          "name": "ptr",
-          "typeId": 6
-        },
-        {
-          "name": "cap",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
+      type: "struct std::vec::Vec<struct stream::StreamData>",
+      concreteTypeId:
+        "4c10371bf377aa4541b6883b80d0dcb58a82e7f11c99e7bc89759c1605a600d1",
+      metadataTypeId: 11,
+      typeArguments: [
+        "ba6159a4ba2e4b7f57f05a74ecb204cb765b9f330a46f28a63ca856cc6dbebc7",
       ],
-      "typeParameters": [
-        5
-      ]
     },
     {
-      "type": "struct std::vec::Vec",
-      "metadataTypeId": 11,
-      "components": [
+      type: "struct stream::StreamData",
+      concreteTypeId:
+        "ba6159a4ba2e4b7f57f05a74ecb204cb765b9f330a46f28a63ca856cc6dbebc7",
+      metadataTypeId: 12,
+    },
+    {
+      type: "struct sway_libs::ownership::events::OwnershipSet",
+      concreteTypeId:
+        "e1ef35033ea9d2956f17c3292dea4a46ce7d61fdf37bbebe03b7b965073f43b5",
+      metadataTypeId: 13,
+    },
+    {
+      type: "u64",
+      concreteTypeId:
+        "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+    },
+  ],
+  metadataTypes: [
+    {
+      type: "(_, _)",
+      metadataTypeId: 0,
+      components: [
         {
-          "name": "buf",
-          "typeId": 10,
-          "typeArguments": [
+          name: "__tuple_element",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
+        {
+          name: "__tuple_element",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
+      ],
+    },
+    {
+      type: "b256",
+      metadataTypeId: 1,
+    },
+    {
+      type: "enum std::identity::Identity",
+      metadataTypeId: 2,
+      components: [
+        {
+          name: "Address",
+          typeId: 7,
+        },
+        {
+          name: "ContractId",
+          typeId: 9,
+        },
+      ],
+    },
+    {
+      type: "enum stream::StreamStatus",
+      metadataTypeId: 3,
+      components: [
+        {
+          name: "Paused",
+          typeId:
+            "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+        },
+        {
+          name: "Active",
+          typeId:
+            "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+        },
+        {
+          name: "Completed",
+          typeId:
+            "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+        },
+        {
+          name: "Cancelled",
+          typeId:
+            "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+        },
+      ],
+    },
+    {
+      type: "enum sway_libs::ownership::errors::InitializationError",
+      metadataTypeId: 4,
+      components: [
+        {
+          name: "CannotReinitialized",
+          typeId:
+            "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+        },
+      ],
+    },
+    {
+      type: "generic T",
+      metadataTypeId: 5,
+    },
+    {
+      type: "raw untyped ptr",
+      metadataTypeId: 6,
+    },
+    {
+      type: "struct std::address::Address",
+      metadataTypeId: 7,
+      components: [
+        {
+          name: "bits",
+          typeId: 1,
+        },
+      ],
+    },
+    {
+      type: "struct std::asset_id::AssetId",
+      metadataTypeId: 8,
+      components: [
+        {
+          name: "bits",
+          typeId: 1,
+        },
+      ],
+    },
+    {
+      type: "struct std::contract_id::ContractId",
+      metadataTypeId: 9,
+      components: [
+        {
+          name: "bits",
+          typeId: 1,
+        },
+      ],
+    },
+    {
+      type: "struct std::vec::RawVec",
+      metadataTypeId: 10,
+      components: [
+        {
+          name: "ptr",
+          typeId: 6,
+        },
+        {
+          name: "cap",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
+      ],
+      typeParameters: [5],
+    },
+    {
+      type: "struct std::vec::Vec",
+      metadataTypeId: 11,
+      components: [
+        {
+          name: "buf",
+          typeId: 10,
+          typeArguments: [
             {
-              "name": "",
-              "typeId": 5
-            }
-          ]
+              name: "",
+              typeId: 5,
+            },
+          ],
         },
         {
-          "name": "len",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
+          name: "len",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
       ],
-      "typeParameters": [
-        5
-      ]
+      typeParameters: [5],
     },
     {
-      "type": "struct stream::StreamData",
-      "metadataTypeId": 12,
-      "components": [
+      type: "struct stream::StreamData",
+      metadataTypeId: 12,
+      components: [
         {
-          "name": "id",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          name: "id",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
         },
         {
-          "name": "asset_id",
-          "typeId": 8
+          name: "asset_id",
+          typeId: 8,
         },
         {
-          "name": "sender",
-          "typeId": 2
+          name: "sender",
+          typeId: 2,
         },
         {
-          "name": "recipient",
-          "typeId": 2
+          name: "recipient",
+          typeId: 2,
         },
         {
-          "name": "amount",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          name: "amount",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
         },
         {
-          "name": "claimed_amount",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          name: "claimed_amount",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
         },
         {
-          "name": "claimed_time",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          name: "claimed_time",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
         },
         {
-          "name": "paused_at",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          name: "paused_at",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
         },
         {
-          "name": "start_time",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          name: "start_time",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
         },
         {
-          "name": "end_time",
-          "typeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          name: "end_time",
+          typeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
         },
         {
-          "name": "status",
-          "typeId": 3
-        }
-      ]
+          name: "status",
+          typeId: 3,
+        },
+      ],
     },
     {
-      "type": "struct sway_libs::ownership::events::OwnershipSet",
-      "metadataTypeId": 13,
-      "components": [
+      type: "struct sway_libs::ownership::events::OwnershipSet",
+      metadataTypeId: 13,
+      components: [
         {
-          "name": "new_owner",
-          "typeId": 2
-        }
-      ]
-    }
+          name: "new_owner",
+          typeId: 2,
+        },
+      ],
+    },
   ],
-  "functions": [
+  functions: [
     {
-      "inputs": [
+      inputs: [
         {
-          "name": "stream_id",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
+          name: "stream_id",
+          concreteTypeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
       ],
-      "name": "cancel",
-      "output": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
-      "attributes": [
+      name: "cancel",
+      output:
+        "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+      attributes: [
         {
-          "name": "storage",
-          "arguments": [
-            "read",
-            "write"
-          ]
-        }
-      ]
+          name: "storage",
+          arguments: ["read", "write"],
+        },
+      ],
     },
     {
-      "inputs": [
+      inputs: [
         {
-          "name": "stream_id",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
+          name: "stream_id",
+          concreteTypeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
       ],
-      "name": "claim",
-      "output": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
-      "attributes": [
+      name: "claim",
+      output:
+        "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+      attributes: [
         {
-          "name": "storage",
-          "arguments": [
-            "read",
-            "write"
-          ]
-        }
-      ]
+          name: "storage",
+          arguments: ["read", "write"],
+        },
+      ],
     },
     {
-      "inputs": [
+      inputs: [
         {
-          "name": "owner",
-          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
-        }
+          name: "owner",
+          concreteTypeId:
+            "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335",
+        },
       ],
-      "name": "constructor",
-      "output": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
-      "attributes": [
+      name: "constructor",
+      output:
+        "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+      attributes: [
         {
-          "name": "storage",
-          "arguments": [
-            "read",
-            "write"
-          ]
-        }
-      ]
+          name: "storage",
+          arguments: ["read", "write"],
+        },
+      ],
     },
     {
-      "inputs": [
+      inputs: [
         {
-          "name": "recipient",
-          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
+          name: "recipient",
+          concreteTypeId:
+            "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335",
         },
         {
-          "name": "amount",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          name: "amount",
+          concreteTypeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
         },
         {
-          "name": "start_time",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
+          name: "start_time",
+          concreteTypeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
         },
         {
-          "name": "end_time",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
+          name: "end_time",
+          concreteTypeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
       ],
-      "name": "create_stream",
-      "output": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
-      "attributes": [
+      name: "create_stream",
+      output:
+        "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+      attributes: [
         {
-          "name": "storage",
-          "arguments": [
-            "read",
-            "write"
-          ]
+          name: "storage",
+          arguments: ["read", "write"],
         },
         {
-          "name": "payable",
-          "arguments": []
-        }
-      ]
-    },
-    {
-      "inputs": [
-        {
-          "name": "stream_id",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
+          name: "payable",
+          arguments: [],
+        },
       ],
-      "name": "pause",
-      "output": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
-      "attributes": [
-        {
-          "name": "storage",
-          "arguments": [
-            "read",
-            "write"
-          ]
-        }
-      ]
     },
     {
-      "inputs": [
+      inputs: [
         {
-          "name": "stream_id",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
+          name: "stream_id",
+          concreteTypeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
       ],
-      "name": "resume",
-      "output": "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
-      "attributes": [
+      name: "pause",
+      output:
+        "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+      attributes: [
         {
-          "name": "storage",
-          "arguments": [
-            "read",
-            "write"
-          ]
-        }
-      ]
-    },
-    {
-      "inputs": [
-        {
-          "name": "owner",
-          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
-        }
+          name: "storage",
+          arguments: ["read", "write"],
+        },
       ],
-      "name": "get_incoming_streams",
-      "output": "4c10371bf377aa4541b6883b80d0dcb58a82e7f11c99e7bc89759c1605a600d1",
-      "attributes": [
-        {
-          "name": "storage",
-          "arguments": [
-            "read"
-          ]
-        }
-      ]
     },
     {
-      "inputs": [
+      inputs: [
         {
-          "name": "owner",
-          "concreteTypeId": "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335"
-        }
+          name: "stream_id",
+          concreteTypeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
       ],
-      "name": "get_outgoing_streams",
-      "output": "4c10371bf377aa4541b6883b80d0dcb58a82e7f11c99e7bc89759c1605a600d1",
-      "attributes": [
+      name: "resume",
+      output:
+        "2e38e77b22c314a449e91fafed92a43826ac6aa403ae6a8acb6cf58239fbaf5d",
+      attributes: [
         {
-          "name": "storage",
-          "arguments": [
-            "read"
-          ]
-        }
-      ]
-    },
-    {
-      "inputs": [
-        {
-          "name": "stream_id",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
+          name: "storage",
+          arguments: ["read", "write"],
+        },
       ],
-      "name": "get_stream",
-      "output": "ba6159a4ba2e4b7f57f05a74ecb204cb765b9f330a46f28a63ca856cc6dbebc7",
-      "attributes": [
-        {
-          "name": "storage",
-          "arguments": [
-            "read"
-          ]
-        }
-      ]
     },
     {
-      "inputs": [],
-      "name": "now",
-      "output": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
-      "attributes": null
-    },
-    {
-      "inputs": [
+      inputs: [
         {
-          "name": "stream_id",
-          "concreteTypeId": "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0"
-        }
+          name: "owner",
+          concreteTypeId:
+            "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335",
+        },
       ],
-      "name": "will_claim",
-      "output": "41bd1a98f0a59642d8f824c805b798a5f268d1f7d05808eb05c4189c493f1be0",
-      "attributes": [
+      name: "get_incoming_streams",
+      output:
+        "4c10371bf377aa4541b6883b80d0dcb58a82e7f11c99e7bc89759c1605a600d1",
+      attributes: [
         {
-          "name": "storage",
-          "arguments": [
-            "read"
-          ]
-        }
-      ]
-    }
+          name: "storage",
+          arguments: ["read"],
+        },
+      ],
+    },
+    {
+      inputs: [
+        {
+          name: "owner",
+          concreteTypeId:
+            "ab7cd04e05be58e3fc15d424c2c4a57f824a2a2d97d67252440a3925ebdc1335",
+        },
+      ],
+      name: "get_outgoing_streams",
+      output:
+        "4c10371bf377aa4541b6883b80d0dcb58a82e7f11c99e7bc89759c1605a600d1",
+      attributes: [
+        {
+          name: "storage",
+          arguments: ["read"],
+        },
+      ],
+    },
+    {
+      inputs: [
+        {
+          name: "stream_id",
+          concreteTypeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
+      ],
+      name: "get_stream",
+      output:
+        "ba6159a4ba2e4b7f57f05a74ecb204cb765b9f330a46f28a63ca856cc6dbebc7",
+      attributes: [
+        {
+          name: "storage",
+          arguments: ["read"],
+        },
+      ],
+    },
+    {
+      inputs: [],
+      name: "now",
+      output:
+        "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+      attributes: null,
+    },
+    {
+      inputs: [
+        {
+          name: "stream_id",
+          concreteTypeId:
+            "1506e6f44c1d6291cdf46395a8e573276a4fa79e8ace3fc891e092ef32d1b0a0",
+        },
+      ],
+      name: "will_claim",
+      output:
+        "41bd1a98f0a59642d8f824c805b798a5f268d1f7d05808eb05c4189c493f1be0",
+      attributes: [
+        {
+          name: "storage",
+          arguments: ["read"],
+        },
+      ],
+    },
   ],
-  "loggedTypes": [
+  loggedTypes: [
     {
-      "logId": "2161305517876418151",
-      "concreteTypeId": "1dfe7feadc1d9667a4351761230f948744068a090fe91b1bc6763a90ed5d3893"
+      logId: "2161305517876418151",
+      concreteTypeId:
+        "1dfe7feadc1d9667a4351761230f948744068a090fe91b1bc6763a90ed5d3893",
     },
     {
-      "logId": "16280289466020123285",
-      "concreteTypeId": "e1ef35033ea9d2956f17c3292dea4a46ce7d61fdf37bbebe03b7b965073f43b5"
-    }
+      logId: "16280289466020123285",
+      concreteTypeId:
+        "e1ef35033ea9d2956f17c3292dea4a46ce7d61fdf37bbebe03b7b965073f43b5",
+    },
   ],
-  "messagesTypes": [],
-  "configurables": []
+  messagesTypes: [],
+  configurables: [],
 };
 
 const storageSlots: StorageSlot[] = [
   {
-    "key": "6e3c7b4f69bbff7132c3c3a62883a6868f47b0bc2a7f21605f29038cd9a5e05f",
-    "value": "000000000000007b000000000000000000000000000000000000000000000000"
-  }
+    key: "6e3c7b4f69bbff7132c3c3a62883a6868f47b0bc2a7f21605f29038cd9a5e05f",
+    value: "000000000000007b000000000000000000000000000000000000000000000000",
+  },
 ];
 
 export class FuelStreamInterface extends Interface {
@@ -551,11 +615,25 @@ export class FuelStream extends Contract {
     cancel: InvokeFunction<[stream_id: BigNumberish], void>;
     claim: InvokeFunction<[stream_id: BigNumberish], void>;
     constructor: InvokeFunction<[owner: IdentityInput], void>;
-    create_stream: InvokeFunction<[recipient: IdentityInput, amount: BigNumberish, start_time: BigNumberish, end_time: BigNumberish], BN>;
+    create_stream: InvokeFunction<
+      [
+        recipient: IdentityInput,
+        amount: BigNumberish,
+        start_time: BigNumberish,
+        end_time: BigNumberish
+      ],
+      BN
+    >;
     pause: InvokeFunction<[stream_id: BigNumberish], void>;
     resume: InvokeFunction<[stream_id: BigNumberish], void>;
-    get_incoming_streams: InvokeFunction<[owner: IdentityInput], Vec<StreamDataOutput>>;
-    get_outgoing_streams: InvokeFunction<[owner: IdentityInput], Vec<StreamDataOutput>>;
+    get_incoming_streams: InvokeFunction<
+      [owner: IdentityInput],
+      Vec<StreamDataOutput>
+    >;
+    get_outgoing_streams: InvokeFunction<
+      [owner: IdentityInput],
+      Vec<StreamDataOutput>
+    >;
     get_stream: InvokeFunction<[stream_id: BigNumberish], StreamDataOutput>;
     now: InvokeFunction<[], BN>;
     will_claim: InvokeFunction<[stream_id: BigNumberish], [BN, BN]>;
@@ -563,7 +641,7 @@ export class FuelStream extends Contract {
 
   constructor(
     id: string | AbstractAddress,
-    accountOrProvider: Account | Provider,
+    accountOrProvider: Account | Provider
   ) {
     super(id, abi, accountOrProvider);
   }

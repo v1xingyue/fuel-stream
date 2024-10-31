@@ -74,6 +74,7 @@ storage {
     streams: StorageMap<u64, StreamData> = StorageMap {},
     incoming_streams: StorageMap<Identity, StorageVec<u64>> = StorageMap {},
     outgoing_streams: StorageMap<Identity, StorageVec<u64>> = StorageMap {},
+    registered_tokens: StorageVec<AssetId> = StorageVec {},
 }
 
 impl Stream for Contract {
@@ -228,6 +229,11 @@ impl Stream for Contract {
         stream_data.amount = 0;
 
         storage.streams.insert(stream_id, stream_data);
+    }
+
+    #[storage(read, write)]
+    fn register_token(token: AssetId) {
+        assert(false);
     }
 }
 
