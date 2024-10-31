@@ -13,6 +13,8 @@ import {
   MdSend,
   MdArrowBack,
   MdRemoveRedEye,
+  MdLightMode,
+  MdDarkMode,
 } from "react-icons/md";
 import SendStream from "./SendStream";
 import { CONTRACT_ID, TOKENS } from "./config";
@@ -52,7 +54,12 @@ const formatTime = (timestamp: number) => {
   });
 };
 
-export default function App() {
+interface AppProps {
+  theme: "light" | "dark";
+  setTheme: (theme: "light" | "dark") => void;
+}
+
+export default function App({ theme, setTheme }: AppProps) {
   const [contract, setContract] = useState<FuelStream>();
   const [streams, setStreams] = useState<StreamDataOutput[]>([]);
   const [outgoingStreams, setOutgoingStreams] = useState<StreamDataOutput[]>(
@@ -235,12 +242,27 @@ export default function App() {
           <div className="card-body items-center text-center">
             <div className="flex justify-between w-full mb-6">
               <h2 className="card-title text-2xl">Fuel Stream</h2>
-              <button
-                className="btn btn-ghost btn-sm"
-                onClick={() => disconnect()}
-              >
-                Disconnect
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                  title={`Switch to ${
+                    theme === "light" ? "dark" : "light"
+                  } mode`}
+                >
+                  {theme === "light" ? (
+                    <MdDarkMode className="text-lg" />
+                  ) : (
+                    <MdLightMode className="text-lg" />
+                  )}
+                </button>
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => disconnect()}
+                >
+                  Disconnect
+                </button>
+              </div>
             </div>
 
             {tokenBalances.length <= 2 ? (
@@ -511,6 +533,21 @@ export default function App() {
               <h2 className="card-title text-2xl mb-8 justify-center">
                 Fuel Stream
               </h2>
+              <div className="absolute top-4 right-4">
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                  title={`Switch to ${
+                    theme === "light" ? "dark" : "light"
+                  } mode`}
+                >
+                  {theme === "light" ? (
+                    <MdDarkMode className="text-lg" />
+                  ) : (
+                    <MdLightMode className="text-lg" />
+                  )}
+                </button>
+              </div>
               <button
                 className="btn btn-primary btn-lg"
                 onClick={() => connect()}
