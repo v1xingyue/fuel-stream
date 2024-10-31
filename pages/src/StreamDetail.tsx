@@ -5,6 +5,13 @@ import { useEffect, useState, useMemo } from "react";
 import { FuelStream } from "./contract-types";
 import { CONTRACT_ID } from "./config";
 import { useWallet } from "@fuels/react";
+import {
+  MdCancel,
+  MdPause,
+  MdPlayArrow,
+  MdDownload,
+  MdArrowBack,
+} from "react-icons/md";
 
 interface StreamDetailProps {
   stream: StreamDataOutput;
@@ -300,6 +307,7 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
                   onClick={handleCancel}
                   disabled={isCanceling}
                 >
+                  <MdCancel className="text-lg" />
                   Cancel Stream
                 </button>
 
@@ -311,6 +319,7 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
                     onClick={handlePause}
                     disabled={isPausing}
                   >
+                    <MdPause className="text-lg" />
                     Pause Stream
                   </button>
                 ) : (
@@ -321,6 +330,7 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
                     onClick={handleResume}
                     disabled={isResuming}
                   >
+                    <MdPlayArrow className="text-lg" />
                     Resume Stream
                   </button>
                 )}
@@ -339,7 +349,7 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
                     ? "btn-warning"
                     : Number(claimableAmount) === 0
                     ? "btn-disabled"
-                    : "btn-primary hover:btn-primary-focus"
+                    : "btn-success hover:btn-success-focus"
                 }`}
                 onClick={handleClaim}
                 disabled={
@@ -349,8 +359,10 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
                   stream.status.toString() === "Claimed"
                 }
               >
-                {isSubmitting && (
+                {isSubmitting ? (
                   <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  <MdDownload className="text-lg" />
                 )}
                 {stream.status.toString() === "Claimed"
                   ? "Already Claimed"

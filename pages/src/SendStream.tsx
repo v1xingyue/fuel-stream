@@ -4,6 +4,16 @@ import "react-datepicker/dist/react-datepicker.css";
 import { bn, CoinQuantity } from "fuels";
 import { useWallet } from "@fuels/react";
 import { TOKENS } from "./config";
+import {
+  MdSend,
+  MdCheck,
+  MdClose,
+  MdAccessTime,
+  MdCalendarToday,
+  MdPerson,
+  MdToken,
+  MdSpeed,
+} from "react-icons/md";
 
 interface SendStreamProps {
   onSuccess: () => void;
@@ -89,7 +99,7 @@ export default function SendStream({ onSuccess, onSubmit }: SendStreamProps) {
     fetchBalances();
   }, [wallet]);
 
-  // 计算时间间隔
+  // 算时间间隔
   const calculateDuration = (
     start: Date | null,
     end: Date | null
@@ -232,7 +242,10 @@ export default function SendStream({ onSuccess, onSubmit }: SendStreamProps) {
         {/* 代币选择和余额显示 */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Asset</span>
+            <span className="label-text flex items-center gap-2">
+              <MdToken className="text-lg" />
+              Asset
+            </span>
           </label>
           <select
             className="select select-bordered w-full"
@@ -268,7 +281,10 @@ export default function SendStream({ onSuccess, onSubmit }: SendStreamProps) {
         {/* 接收地址 */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Recipient Address</span>
+            <span className="label-text flex items-center gap-2">
+              <MdPerson className="text-lg" />
+              Recipient Address
+            </span>
           </label>
           <input
             type="text"
@@ -284,7 +300,10 @@ export default function SendStream({ onSuccess, onSubmit }: SendStreamProps) {
         {/* 速率输入 */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Rate (tokens per second)</span>
+            <span className="label-text flex items-center gap-2">
+              <MdSpeed className="text-lg" />
+              Rate (tokens per second)
+            </span>
           </label>
           <input
             type="text"
@@ -313,7 +332,10 @@ export default function SendStream({ onSuccess, onSubmit }: SendStreamProps) {
         {/* 开始时间 */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Start Time</span>
+            <span className="label-text flex items-center gap-2">
+              <MdCalendarToday className="text-lg" />
+              Start Time
+            </span>
           </label>
           <DatePicker
             selected={formData.startTime}
@@ -339,7 +361,10 @@ export default function SendStream({ onSuccess, onSubmit }: SendStreamProps) {
         {/* 结束时间 */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">End Time</span>
+            <span className="label-text flex items-center gap-2">
+              <MdAccessTime className="text-lg" />
+              End Time
+            </span>
           </label>
           <DatePicker
             selected={formData.endTime}
@@ -366,7 +391,7 @@ export default function SendStream({ onSuccess, onSubmit }: SendStreamProps) {
         <div className="form-control mt-6">
           <button
             type="submit"
-            className="btn btn-primary"
+            className="btn btn-success gap-2"
             disabled={Boolean(
               !formData.rate ||
                 !formData.recipient ||
@@ -386,6 +411,7 @@ export default function SendStream({ onSuccess, onSubmit }: SendStreamProps) {
                     ))
             )}
           >
+            <MdSend className="text-lg" />
             Create Stream
           </button>
         </div>
@@ -416,18 +442,26 @@ export default function SendStream({ onSuccess, onSubmit }: SendStreamProps) {
           <div className="modal-action">
             <form method="dialog" className="flex gap-2">
               <button
-                className="btn btn-ghost"
+                className="btn btn-ghost gap-2"
                 onClick={() => dialogRef.current?.close()}
                 disabled={isSubmitting}
               >
+                <MdClose className="text-lg" />
                 Cancel
               </button>
               <button
                 type="button"
-                className={`btn btn-primary ${isSubmitting ? "loading" : ""}`}
+                className={`btn btn-success gap-2 ${
+                  isSubmitting ? "loading" : ""
+                }`}
                 onClick={handleConfirm}
                 disabled={isSubmitting}
               >
+                {isSubmitting ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  <MdCheck className="text-lg" />
+                )}
                 {isSubmitting ? "Creating..." : "Confirm"}
               </button>
             </form>

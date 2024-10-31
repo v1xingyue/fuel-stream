@@ -43,7 +43,7 @@ const copyToClipboard = (text: string) => {
 
 // 添加时间格式化函数
 const formatTime = (timestamp: number) => {
-  const date = new Date(timestamp * 1000); // 转换为毫秒
+  const date = new Date(timestamp * 1000); // 转换为��秒
   return date.toLocaleString("en-US", {
     year: "numeric",
     month: "short",
@@ -373,7 +373,7 @@ export default function App({ theme, setTheme }: AppProps) {
                   : "Stream List"}
               </h3>
               <button
-                className="btn btn-primary gap-2"
+                className="btn btn-success gap-2"
                 onClick={() => {
                   if (selectedStream) {
                     handleBackToList();
@@ -401,7 +401,7 @@ export default function App({ theme, setTheme }: AppProps) {
                 <div className="flex gap-2 mb-4">
                   <button
                     className={`btn btn-sm ${
-                      activeTab === "incoming" ? "btn-primary" : "btn-ghost"
+                      activeTab === "incoming" ? "btn-success" : "btn-ghost"
                     }`}
                     onClick={() => handleTabChange("incoming")}
                   >
@@ -409,7 +409,7 @@ export default function App({ theme, setTheme }: AppProps) {
                   </button>
                   <button
                     className={`btn btn-sm ${
-                      activeTab === "outgoing" ? "btn-primary" : "btn-ghost"
+                      activeTab === "outgoing" ? "btn-success" : "btn-ghost"
                     }`}
                     onClick={() => handleTabChange("outgoing")}
                   >
@@ -549,7 +549,7 @@ export default function App({ theme, setTheme }: AppProps) {
                 </button>
               </div>
               <button
-                className="btn btn-primary btn-lg"
+                className="btn btn-success btn-lg"
                 onClick={() => connect()}
               >
                 {isConnecting ? "Connecting..." : "Connect Wallet"}
