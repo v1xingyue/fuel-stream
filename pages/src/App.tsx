@@ -32,7 +32,7 @@ interface TokenBalance {
 // 修改地址缩略函数，显示更多内容
 const truncateAddress = (address: string) => {
   if (!address) return "";
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  return `${address.slice(0, 12)}...${address.slice(-8)}`;
 };
 
 // 添加复制函数
@@ -43,7 +43,7 @@ const copyToClipboard = (text: string) => {
 
 // 添加时间格式化函数
 const formatTime = (timestamp: number) => {
-  const date = new Date(timestamp * 1000); // 转换为��秒
+  const date = new Date(timestamp * 1000); // 转换为秒
   return date.toLocaleString("en-US", {
     year: "numeric",
     month: "short",

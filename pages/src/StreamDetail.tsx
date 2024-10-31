@@ -4,13 +4,17 @@ import { bn } from "fuels";
 import { useEffect, useState, useMemo } from "react";
 import { FuelStream } from "./contract-types";
 import { CONTRACT_ID } from "./config";
-import { useWallet } from "@fuels/react";
+import { useNetwork, useWallet } from "@fuels/react";
 import {
   MdCancel,
   MdPause,
   MdPlayArrow,
   MdDownload,
-  MdArrowBack,
+  MdCheckCircle,
+  MdError,
+  MdInfo,
+  MdClose,
+  MdOpenInNew,
 } from "react-icons/md";
 
 interface StreamDetailProps {
@@ -20,15 +24,34 @@ interface StreamDetailProps {
 
 const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
   const { wallet } = useWallet();
+  const { network } = useNetwork();
   const [currentTime, setCurrentTime] = useState<number>(
     Math.floor(Date.now() / 1000)
   );
   const [claimableAmount, setClaimableAmount] = useState<string>("0");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isPausing, setIsPausing] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
   const [isResuming, setIsResuming] = useState(false);
+
+  // 添加 Toast 状态
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "info";
+    visible: boolean;
+    txId?: string;
+  } | null>(null);
+
+  // 显示 Toast 的函数
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "info",
+    txId?: string
+  ) => {
+    setToast({ message, type, visible: true, txId });
+    const timer = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(timer);
+  };
 
   // 检查当前用户是否为 sender
   const isSender = useMemo(() => {
@@ -113,11 +136,10 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
       const contract = new FuelStream(CONTRACT_ID, wallet);
       const tx = await contract.functions.claim(stream.id).call();
       await tx.waitForResult();
-      // TODO: 可以添加成功提示
-      console.log("Claim successful");
+      showToast("Successfully claimed tokens", "success", tx.transactionId);
     } catch (error) {
       console.error("Failed to claim:", error);
-      // TODO: 可以添加错误提示
+      showToast("Failed to claim tokens", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -172,6 +194,22 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
   const shouldShowOperations = () => {
     const status = stream.status.toString();
     return status !== "Cancelled" && status !== "Completed";
+  };
+
+  // 添加断是否显示 Claim 按钮的函数
+  const shouldShowClaimButton = () => {
+    const status = stream.status.toString();
+    return status !== "Paused" && status !== "Completed";
+  };
+
+  // 添加打开区块浏览器的函数
+  const openExplorer = (txId: string) => {
+    console.log(network?.url);
+    if (network?.url.includes("testnet")) {
+      window.open(`https://app-testnet.fuel.network/tx/${txId}`, "_blank");
+    } else {
+      window.open(`https://app.fuel.network/tx/${txId}`, "_blank");
+    }
   };
 
   return (
@@ -235,7 +273,7 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
             <span className="font-medium">{formatTime(currentTime)}</span>
           </div>
 
-          {/* Claimable Amount - 只在活跃状态下显示 */}
+          {/* Claimable Amount - 只在活态下显示 */}
           {shouldShowOperations() && stream.status.toString() !== "Paused" && (
             <div className="flex flex-col items-center justify-center py-8">
               <div className="text-2xl font-bold text-primary">
@@ -296,12 +334,13 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
             </span>
           </div>
 
-          {/* Sender Actions Section - 只在活跃状态下显示 */}
-          {shouldShowOperations() && isSender && (
-            <div className="flex flex-col items-center gap-4 pt-6">
-              <div className="flex gap-4">
+          {/* Actions Section - 合并所有操作按钮 */}
+          <div className="flex justify-center gap-4 pt-6">
+            {/* Sender Actions */}
+            {shouldShowOperations() && isSender && (
+              <>
                 <button
-                  className={`btn btn-error gap-2 ${
+                  className={`btn btn-error gap-2 min-w-[160px] ${
                     isCanceling ? "loading" : ""
                   }`}
                   onClick={handleCancel}
@@ -313,7 +352,7 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
 
                 {stream.status.toString() !== "Paused" ? (
                   <button
-                    className={`btn btn-warning gap-2 ${
+                    className={`btn btn-warning gap-2 min-w-[160px] ${
                       isPausing ? "loading" : ""
                     }`}
                     onClick={handlePause}
@@ -324,7 +363,7 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
                   </button>
                 ) : (
                   <button
-                    className={`btn btn-success gap-2 ${
+                    className={`btn btn-success gap-2 min-w-[160px] ${
                       isResuming ? "loading" : ""
                     }`}
                     onClick={handleResume}
@@ -334,15 +373,13 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
                     Resume Stream
                   </button>
                 )}
-              </div>
-            </div>
-          )}
+              </>
+            )}
 
-          {/* Claim Button Section - 只在活跃状态且非 sender 时显示 */}
-          {shouldShowOperations() && !isSender && (
-            <div className="flex flex-col items-center gap-4 pt-6">
+            {/* Claim Button */}
+            {shouldShowClaimButton() && (
               <button
-                className={`btn btn-lg gap-2 min-w-[200px] ${
+                className={`btn gap-2 min-w-[160px] ${
                   stream.status.toString() === "Claimed"
                     ? "btn-disabled bg-gray-500 border-gray-500 text-gray-300"
                     : currentTime < Number(stream.start_time)
@@ -374,10 +411,52 @@ const StreamDetail = ({ stream, onBack }: StreamDetailProps) => {
                   ? "Claiming..."
                   : "Claim Tokens"}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Toast Component - 添加关闭按钮 */}
+      {toast && (
+        <div className="toast toast-end">
+          <div
+            className={`alert ${
+              toast.type === "success"
+                ? "alert-success"
+                : toast.type === "error"
+                ? "alert-error"
+                : "alert-info"
+            } pr-2`}
+          >
+            {/* 状态图标 */}
+            {toast.type === "success" ? (
+              <MdCheckCircle className="text-xl" />
+            ) : toast.type === "error" ? (
+              <MdError className="text-xl" />
+            ) : (
+              <MdInfo className="text-xl" />
+            )}
+            <span>{toast.message}</span>
+            {/* 添加交易链接按钮 */}
+            {toast.txId && (
+              <button
+                className="btn btn-ghost btn-xs"
+                onClick={() => openExplorer(toast.txId!)}
+                title="View in Explorer"
+              >
+                <MdOpenInNew className="text-lg" />
+              </button>
+            )}
+            {/* 关闭按钮 */}
+            <button
+              className="btn btn-ghost btn-xs"
+              onClick={() => setToast(null)}
+            >
+              <MdClose className="text-lg" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
